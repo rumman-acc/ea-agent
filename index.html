@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluid EA Agents — The Agentic Layer for SAP LeanIX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* ---- ea-client palette (primary) ---- */
+  --navy:#0f172a; --slate:#1e293b; --teal:#0d9488; --teal-dark:#0f766e; --blue:#2563eb; --blue-light:#3b82f6;
+  --success:#059669; --success-bg:#d1fae5; --success-border:#6ee7b7;
+  --warning:#d97706; --warning-bg:#fef3c7; --warning-border:#fcd34d;
+  --danger:#dc2626; --danger-bg:#fee2e2;
+  --bg:#f4f6f9; --card:#ffffff; --border:#e2e8f0; --border-light:#f1f5f9;
+  --text:#0f172a; --muted:#64748b; --muted-light:#94a3b8;
+  --plan-bg:#e0e7ff; --plan-text:#3730a3;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --shadow-xs:0 1px 2px rgba(15,23,42,.05);
+  --shadow-sm:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --shadow-md:0 4px 14px rgba(15,23,42,.07), 0 1.5px 4px rgba(15,23,42,.05);
+  --shadow-lg:0 12px 32px rgba(15,23,42,.10), 0 3px 8px rgba(15,23,42,.06);
+  --shadow-glow-blue:0 0 0 4px rgba(37,99,235,.12), 0 4px 14px rgba(37,99,235,.18);
+  --shadow-glow-teal:0 0 0 4px rgba(13,148,136,.10), 0 4px 14px rgba(13,148,136,.12);
+
+  /* ---- aliases so console-style component CSS drops in unchanged ---- */
+  --ink:#0f172a; --ink2:#334155; --muted2:#94a3b8; --muted3:#cbd5e1;
+  --line:#e2e8f0; --soft:#f1f5f9; --paper:#ffffff;
+  --teal-bg:#e6f5f3; --teal-l:#ccfbf1;
+  --blue-bg:#eff4ff; --blue-l:#dbeafe;
+  --amber:#b45309; --amber-bg:#fffbeb; --amber-l:#fef3c7;
+  --red:#b91c1c; --red-bg:#fef2f2; --red-l:#fee2e2;
+  --violet:#6d28d9; --violet-bg:#f3f0ff; --violet-l:#ede9fe;
+  --green:#059669; --green-bg:#ecfdf5;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --lexend:'Lexend',system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:10px; --radius-sm:7px; --radius-xs:4px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans); color:var(--text); font-size:14px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(37,99,235,.075), transparent 60%),
+    radial-gradient(900px 460px at 96% 6%, rgba(13,148,136,.075), transparent 58%),
+    radial-gradient(700px 420px at 50% 100%, rgba(79,70,229,.04), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+::selection{background:rgba(37,99,235,.18);}
+button{font:inherit; cursor:pointer;}
+a{color:var(--blue); text-decoration:none;}
+:focus-visible{outline:2px solid var(--blue); outline-offset:2px; border-radius:4px;}
+
+/* ================= HEADER (ea-client look) ================= */
+header.topbar{
+  background:linear-gradient(115deg,var(--navy) 0%, var(--slate) 55%, #16213a 100%);
+  color:#fff; padding:0 24px; height:56px; display:flex; align-items:center; gap:13px;
+  position:sticky; top:0; z-index:100;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 6px 18px rgba(15,23,42,.18);
+}
+header.topbar::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:2px;
+  background:linear-gradient(90deg, var(--blue) 0%, var(--teal) 50%, transparent 100%); opacity:.55;
+}
+.logo-mark{width:28px; height:28px; flex-shrink:0; filter:drop-shadow(0 2px 5px rgba(0,0,0,.25));}
+.brand-name{font-size:15px; font-weight:700; letter-spacing:.2px; color:#fff;}
+.brand-divider{width:1px; height:20px; background:rgba(255,255,255,.22); margin:0 5px;}
+.app-name{font-size:14.5px; font-weight:500; color:#e2e8f0; letter-spacing:.1px;}
+.topbar .spacer{flex:1;}
+.pill{font-family:var(--mono); font-size:10px; letter-spacing:.4px; padding:4px 10px; border-radius:20px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); white-space:nowrap;}
+.topbar-btn{font-family:var(--lexend); font-size:12.5px; font-weight:500; color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.22); border-radius:8px; padding:7px 14px; white-space:nowrap; transition:all .15s var(--ease);}
+.topbar-btn:hover{background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.35); transform:translateY(-1px);}
+.pill.warn{border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.1); color:#fcd34d;}
+.whoami{font-family:var(--mono); font-size:11px; opacity:.65; display:flex; align-items:center; gap:6px;}
+.whoami .av{width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600;}
+
+/* ================= SHELL / NAV ================= */
+.shell{display:grid; grid-template-columns:226px 1fr; min-height:calc(100vh - 56px); transition:grid-template-columns .2s var(--ease);}
+.shell.nav-collapsed{grid-template-columns:60px 1fr;}
+.nav{border-right:1px solid var(--border); background:var(--card); padding:16px 0; position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; overflow-x:hidden; transition:width .2s var(--ease);}
+.nav-toggle-row{display:flex; justify-content:flex-end; padding:0 12px 10px;}
+.nav.collapsed .nav-toggle-row{justify-content:center;}
+.nav-toggle{background:none; border:1px solid var(--border); border-radius:6px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; color:var(--muted); transition:all .15s var(--ease); flex-shrink:0;}
+.nav-toggle:hover{background:var(--border-light); color:var(--navy);}
+.nav h6{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--ink2); padding:16px 16px 6px; font-weight:700; white-space:nowrap;}
+.nav h6:first-child{padding-top:4px;}
+.nav.collapsed h6{display:none;}
+.nav button{display:flex; width:100%; align-items:center; gap:10px; background:none; border:0; text-align:left; padding:9px 16px; color:var(--ink2); font-size:13px; border-left:2.5px solid transparent; transition:all .15s var(--ease); white-space:nowrap;}
+.nav.collapsed button{justify-content:center; padding:9px 0;}
+.nav button:hover{background:var(--border-light);}
+.nav button.on{color:var(--navy); font-weight:700; border-left-color:var(--teal); background:var(--teal-bg);}
+.nav button .ic{display:none; width:22px; height:22px; border-radius:6px; background:var(--border-light); color:var(--muted); font-family:var(--mono); font-size:9.5px; font-weight:700; align-items:center; justify-content:center; flex-shrink:0;}
+.nav.collapsed button .ic{display:flex;}
+.nav.collapsed button .lbl{display:none;}
+.nav.collapsed button .dot-n{display:none;}
+.nav button.on .ic{background:var(--teal); color:#fff;}
+.nav .dot-n{margin-left:auto; width:18px; height:18px; border-radius:50%; font-family:var(--mono); font-size:10px; font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.nav button.on .dot-n{background:var(--teal); color:#fff;}
+.nav button:not(.on) .dot-n{background:var(--border-light); color:var(--muted);}
+
+/* ================= MAIN ================= */
+.main-wrap{display:flex; flex-direction:column; min-height:calc(100vh - 56px);}
+main.content{padding:28px 36px 60px; max-width:1520px; flex:1; width:100%;}
+.eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted-light); margin-bottom:6px; font-weight:600;}
+h1{font-size:22px; font-weight:700; letter-spacing:-.5px; color:var(--navy);}
+h2{font-size:14px; font-weight:700; letter-spacing:-.2px;}
+.lede{color:var(--muted); font-size:13.5px; max-width:100%; margin-top:6px; line-height:1.65;}
+.page{display:none;}
+.page.on{display:block;}
+section{margin-top:22px;}
+footer.appfooter{padding:24px 36px 40px; color:var(--muted-light); font-size:11.5px; line-height:1.6; max-width:1520px;}
+
+/* ================= PRIMITIVES (console-style, ea-client palette) ================= */
+.card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); transition:box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);}
+.card:hover{box-shadow:var(--shadow-md); transform:translateY(-1px); border-color:var(--blue-light);}
+.card>header{padding:13px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:linear-gradient(90deg,#eff6ff,#f5fbfa); border-radius:var(--radius) var(--radius) 0 0;}
+.card>header h2{font-size:13px; color:var(--navy);}
+.card>.body{padding:20px;}
+.grid{display:grid; gap:16px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+
+.stat{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px 18px 22px; box-shadow:var(--shadow-md); position:relative; overflow:hidden; transition:box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);}
+.stat:hover{box-shadow:var(--shadow-lg); transform:translateY(-1px); border-color:var(--blue-light);}
+.stat::before{content:''; position:absolute; top:0; left:0; bottom:0; width:4px;}
+.stat.s-teal::before{background:var(--teal);}
+.stat.s-amber::before{background:var(--warning);}
+.stat.s-blue::before{background:var(--blue);}
+.stat.s-red::before{background:var(--danger);}
+.stat .k{font-size:11px; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); font-weight:600;}
+.stat .v{font-family:var(--mono); font-size:27px; font-weight:700; letter-spacing:-1.5px; margin-top:4px; background:linear-gradient(90deg,var(--navy),var(--blue)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.stat.s-teal .v{background:linear-gradient(90deg,var(--navy),var(--teal)); -webkit-background-clip:text; background-clip:text;}
+.stat.s-amber .v{background:linear-gradient(90deg,var(--navy),var(--warning)); -webkit-background-clip:text; background-clip:text;}
+.stat.s-red .v{background:linear-gradient(90deg,var(--navy),var(--danger)); -webkit-background-clip:text; background-clip:text;}
+.stat .n{font-size:12px; color:var(--muted-light); margin-top:2px;}
+
+.tag{font-family:var(--lexend); font-size:11px; letter-spacing:normal; padding:3px 9px; border-radius:20px; border:1px solid; white-space:nowrap; text-transform:none; font-weight:500;}
+.t-auto{color:var(--blue); border-color:var(--blue-l); background:var(--blue-bg);}
+.t-rule{color:var(--ink2); border-color:var(--border); background:var(--border-light);}
+.t-wait{color:var(--warning); border-color:var(--warning-border); background:var(--warning-bg);}
+.t-human{color:var(--violet); border-color:var(--violet-l); background:var(--violet-bg);}
+.t-ok{color:var(--teal); border-color:var(--teal-l); background:var(--teal-bg);}
+.t-bad{color:var(--danger); border-color:var(--danger-bg); background:var(--danger-bg);}
+.mono{font-family:var(--mono); font-size:12px;}
+.dim{color:var(--muted);}
+.info-ic{display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; background:var(--border-light); color:var(--muted); font-size:10px; font-weight:700; font-style:italic; font-family:Georgia,'Times New Roman',serif; cursor:help; flex-shrink:0; border:1px solid var(--border); transition:all .15s var(--ease);}
+.info-ic:hover{background:var(--blue-bg); color:var(--blue); border-color:var(--blue-l);}
+
+table{width:100%; border-collapse:collapse;}
+th{text-align:left; font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--ink2); background:var(--border-light); padding:10px 16px; border-bottom:1px solid var(--border); font-weight:700;}
+th:first-child{border-top-left-radius:6px;}
+th:last-child{border-top-right-radius:6px;}
+td{padding:10px 16px; border-bottom:1px solid var(--border-light); vertical-align:top; font-size:13px;}
+tr:last-child td{border-bottom:0;}
+tr:hover td{background:var(--bg);}
+
+.btn{border:0; border-radius:var(--radius-sm); padding:8px 16px; font-size:13px; font-weight:600; transition:all .15s var(--ease); box-shadow:var(--shadow-xs);}
+.btn:active{transform:scale(.98);}
+.btn.p{background:var(--navy); color:#fff;} .btn.p:hover{background:#1e293b;}
+.btn.g{background:var(--teal); color:#fff;} .btn.g:hover{background:var(--teal-dark);}
+.btn.o{background:#fff; color:var(--ink2); border:1px solid var(--border);} .btn.o:hover{border-color:var(--muted-light);}
+.btn.b{background:var(--blue); color:#fff;} .btn.b:hover{background:var(--blue-light);}
+.btn.d{background:#fff; color:var(--danger); border:1px solid var(--danger-bg);} .btn.d:hover{background:var(--danger-bg);}
+.btn.sm{padding:5px 10px; font-size:12px; border-radius:var(--radius-xs);}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+
+.note{background:var(--border-light); border:1px solid var(--border); border-left:3px solid var(--muted-light); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:11px 14px; font-size:12.5px; color:var(--ink2); line-height:1.6;}
+.bar{height:6px; background:var(--border-light); border-radius:3px; overflow:hidden;}
+.bar i{display:block; height:100%; border-radius:3px; transition:width .6s ease;}
+.bar i.tl{background:var(--teal);}
+.bar i.hot{background:var(--warning);}
+
+/* ================= AGENTS ================= */
+.agent{border:1px solid var(--border); border-radius:var(--radius); background:var(--card); padding:16px 16px 16px 18px; box-shadow:var(--shadow-sm); transition:box-shadow .15s var(--ease), border-color .15s var(--ease); position:relative; overflow:hidden;}
+.agent:hover{box-shadow:var(--shadow-md); border-color:var(--blue-light);}
+.agent::before{content:''; position:absolute; top:0; left:0; bottom:0; width:4px;}
+.agent.a-auto::before{background:var(--blue);}
+.agent.a-rule::before{background:var(--muted-light);}
+.agent.a-human::before{background:var(--violet);}
+.agent h3{font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;}
+.agent .io{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:8px; line-height:1.7;}
+.agent .io b{color:var(--ink2); font-weight:600;}
+.agent .desc{font-size:12.5px; color:var(--ink2); margin-top:8px; line-height:1.55; padding-top:8px; border-top:1px solid var(--border-light);}
+
+/* ================= APPROVALS ================= */
+.ap-detail{margin-top:16px;}
+.ap-detail .evidence{margin-top:10px; border:1px solid var(--border); border-radius:8px; background:#fcfdfe; padding:10px 12px; font-family:var(--mono); font-size:11px; color:var(--ink2); line-height:1.65; white-space:pre-wrap;}
+
+/* ================= GUARDRAILS ================= */
+.ev{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-light); align-items:flex-start;}
+.ev:last-child{border-bottom:0;}
+.ev .w{width:90px; flex-shrink:0; padding-top:2px;}
+.ev .bd{flex:1;}
+.ev .bd b{font-weight:700; font-size:13px;}
+.ev .bd p{font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.55;}
+
+.boundary{border:2px dashed var(--teal); border-radius:var(--radius); padding:16px; background:var(--teal-bg);}
+.boundary h4{font-size:13px; font-weight:700; color:var(--teal-dark);}
+.boundary ul{margin:8px 0 0 18px; font-size:12.5px; color:var(--ink2); line-height:1.7;}
+
+/* ================= SOLUTION DESIGN ================= */
+.sd-legend{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border-light);}
+.sd-legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--ink2);}
+.sd-legend .sw{width:14px; height:14px; border-radius:4px; display:inline-block; flex-shrink:0; border:1px solid;}
+.sw-l0{background:#eff4ff; border-color:#2563eb;}
+.sw-l1{background:#eef2ff; border-color:#4f46e5;}
+.sw-l2{background:#e0f2fe; border-color:#0284c7;}
+.sw-l3{background:#fff1e8; border-color:#c2410c;}
+.sw-l4{background:#f1f5f9; border-color:#475569;}
+.sw-cross{background:var(--teal-bg); border-color:var(--teal);}
+.sd-wrap{max-width:900px; margin:0 auto; overflow-x:auto;}
+.sd-wrap svg{width:100%; height:auto; display:block; min-width:640px;}
+
+/* ================= APPLICATION REQUEST: banner / stepper (ea-client) ================= */
+.ar-banner{
+  background:linear-gradient(90deg,#eff6ff,#ecfdfa); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px 20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; box-shadow:var(--shadow-xs);
+}
+.progressbar{display:flex; align-items:center; gap:0; width:100%;}
+.steps-row{display:flex; align-items:center; flex:1; flex-wrap:wrap; gap:0;}
+.step{display:flex; align-items:center; gap:9px; padding:6px 0; color:var(--muted-light); font-size:12.5px; font-weight:600; transition:all .3s var(--ease); opacity:.65;}
+.step .num{
+  width:25px; height:25px; border-radius:50%; background:#eef1f6; color:var(--muted-light);
+  display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
+  flex-shrink:0; transition:all .35s var(--ease); position:relative;
+}
+.step.active{color:var(--blue); font-weight:700; opacity:1;}
+.step.active .num{background:var(--blue); color:#fff; box-shadow:var(--shadow-glow-blue); transform:scale(1.06);}
+.step.done{color:var(--success); opacity:1;}
+.step.done .num{background:var(--success); color:#fff; box-shadow:0 2px 6px rgba(5,150,105,.25);}
+.step.rej{color:var(--muted-light); opacity:.65;}
+.step.rej .num{background:#eef1f6; color:var(--muted-light); box-shadow:none;}
+.step-connector{width:30px; height:3px; border-radius:2px; background:var(--border-light); margin:0 9px; position:relative; overflow:hidden;}
+.step-connector::after{content:''; position:absolute; inset:0; width:0%; background:linear-gradient(90deg,var(--success),#047857); transition:width .5s var(--ease);}
+.step-connector.done::after{width:100%;}
+#submitAnotherBtn{
+  background:#fff; color:var(--muted); border:1px solid var(--border); border-radius:9px;
+  padding:9px 16px; font-size:12.5px; font-weight:700; white-space:nowrap; margin-left:16px;
+  transition:all .2s var(--ease); box-shadow:var(--shadow-xs);
+}
+#submitAnotherBtn:hover{background:#f8fafc; border-color:var(--muted-light); color:var(--text); box-shadow:var(--shadow-sm); transform:translateY(-1px);}
+
+.wide-card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); overflow:hidden; transition:box-shadow .2s var(--ease), border-color .2s var(--ease);}
+.wide-card:hover{box-shadow:var(--shadow-lg); border-color:var(--blue-light);}
+.wide-card.reveal{animation:revealIn .5s var(--ease);}
+@keyframes revealIn{from{opacity:0; transform:translateY(16px) scale(.99);} to{opacity:1; transform:none;}}
+.card-pad{padding:30px 34px;}
+.section-title{font-size:17px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:9px; margin-bottom:4px; letter-spacing:-.2px;}
+.section-subtitle{font-size:13px; color:var(--muted); margin-bottom:18px;}
+
+/* ================= CHAT (console engine) ================= */
+.chat-layout{display:grid; grid-template-columns:1fr 270px; gap:18px; align-items:start;}
+.chat-card{display:flex; flex-direction:column; min-height:360px; border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+.chat-card .thread{flex:1; padding:18px; overflow-y:auto; max-height:420px; display:flex; flex-direction:column; gap:16px;}
+.msg{max-width:82%; animation:msgIn .25s ease;}
+@keyframes msgIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+.msg.u{align-self:flex-end;}
+.msg .who{font-family:var(--mono); font-size:9.5px; letter-spacing:.7px; text-transform:uppercase; color:var(--muted-light); margin-bottom:4px; font-weight:600;}
+.msg.u .who{text-align:right;}
+.msg .bub{padding:11px 14px; border-radius:12px; font-size:13.5px; line-height:1.6; box-shadow:var(--shadow-xs);}
+.msg.u .bub{background:var(--violet-bg); border:1px solid var(--violet-l); border-bottom-right-radius:4px; color:var(--ink);}
+.msg.b .bub{background:var(--card); border:1px solid var(--border); border-bottom-left-radius:4px;}
+.msg .chain{display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;}
+.msg .chain span{font-family:var(--mono); font-size:9.5px; padding:2px 7px; border-radius:20px;}
+.msg .chain span.ag{background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue-l);}
+.msg .chain span.rl{background:var(--border-light); color:var(--ink2); border:1px solid var(--border);}
+.composer{border-top:1px solid var(--border); padding:14px 16px; display:flex; gap:10px; align-items:flex-end; background:var(--card);}
+.composer textarea{flex:1; border:1px solid var(--border); border-radius:8px; padding:10px 12px; font:inherit; font-size:13.5px; resize:none; min-height:44px; max-height:120px; transition:border-color .15s;}
+.composer textarea:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+.chips h6{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted-light); margin-bottom:8px; font-weight:700;}
+.chips button{display:block; width:100%; text-align:left; background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:12.5px; color:var(--ink2); line-height:1.5; transition:all .15s var(--ease); box-shadow:var(--shadow-xs);}
+.chips button:hover{border-color:var(--teal); background:var(--teal-bg); box-shadow:var(--shadow-sm);}
+.chips button b{display:block; font-size:12px; font-weight:700; color:var(--navy); margin-bottom:2px;}
+
+/* ================= INPUT / OUTPUT SOURCES ================= */
+.io-block{border-radius:10px; padding:14px 16px; border:1px solid var(--border);}
+.io-in{background:var(--blue-bg); border-color:var(--blue-l);}
+.io-out{background:var(--teal-bg); border-color:var(--teal-l);}
+.io-label{font-size:11px; text-transform:uppercase; letter-spacing:.6px; font-weight:700; color:var(--ink2); margin-bottom:6px;}
+.io-val{font-size:13px; line-height:1.6; color:var(--ink2);}
+
+/* ================= SIDE-BY-SIDE: run trace (left) + workflow (right) ================= */
+.ar-split{display:none; grid-template-columns:1fr 1fr; gap:18px; align-items:start; margin-top:20px;}
+@media(max-width:1050px){ .ar-split{grid-template-columns:1fr;} }
+.ar-split .card>header{position:sticky; top:56px; z-index:2;}
+
+/* ---- dynamically generated workflow diagram (built 1:1 from the run trace) ---- */
+.workflow-diagram{width:100%; border-radius:0; overflow:hidden;}
+.wf-panel-head{display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border-light); background:linear-gradient(180deg,#fff,#fbfcfe);}
+.wf-live{display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; color:var(--navy); letter-spacing:.2px;}
+.live-dot{width:8px; height:8px; border-radius:50%; background:var(--blue); box-shadow:0 0 0 0 rgba(37,99,235,.5); animation:liveDotPulse 1.6s ease-out infinite;}
+@keyframes liveDotPulse{0%{box-shadow:0 0 0 0 rgba(37,99,235,.45);} 70%{box-shadow:0 0 0 7px rgba(37,99,235,0);} 100%{box-shadow:0 0 0 0 rgba(37,99,235,0);}}
+.wf-legend{display:flex; align-items:center; gap:12px;}
+.wf-legend-item{display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; color:var(--muted);}
+.wf-legend-item .dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0;}
+.wf-legend-item .dot.pending{background:#dbe2ea;}
+.wf-legend-item .dot.active{background:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.18);}
+.wf-legend-item .dot.done{background:var(--teal);}
+.workflow-diagram-scroll{width:100%; overflow-x:auto; overflow-y:auto; max-height:640px; padding:16px 6px;}
+.workflow-diagram svg{width:100%; height:auto; display:block; min-width:520px;}
+.wf-accent{opacity:.5; transition:opacity .35s var(--ease);}
+.wf-node.active .wf-accent, .wf-node.done .wf-accent{opacity:1;}
+.wf-shape{fill:#ffffff; stroke:#cbd5e1; stroke-width:1.6; transition:fill .35s var(--ease), stroke .35s var(--ease), stroke-width .35s var(--ease); filter:url(#wfShadowSoft);}
+.wf-cap{fill:var(--navy); stroke:none; transition:fill .35s var(--ease); filter:url(#wfShadowSoft);}
+.wf-text{font-size:15.5px; font-weight:600; fill:#3b4759; text-anchor:middle; transition:fill .3s var(--ease);}
+.wf-sub{font-size:11.5px; font-weight:600; fill:#94a3b8; text-anchor:middle; letter-spacing:.3px;}
+.wf-cap-text{font-size:14.5px; font-weight:700; fill:#fff; text-anchor:middle;}
+.wf-edge{stroke:#8b98ab; stroke-width:2.6; fill:none; transition:stroke .3s var(--ease), stroke-width .3s var(--ease); marker-end:url(#wf-arrow);}
+.wf-edge.done{stroke:var(--teal); stroke-width:3.4; marker-end:url(#wf-arrow-done);}
+.wf-edge.flowing{stroke-dasharray:8 7; animation:wfDashFlow .55s linear infinite;}
+@keyframes wfDashFlow{to{stroke-dashoffset:-30;}}
+.wf-node.active .wf-shape{stroke:var(--blue); fill:#eff6ff; stroke-width:2.4;}
+.wf-node.active .wf-text{fill:var(--blue);}
+.wf-node.active .wf-cap{fill:var(--blue);}
+.wf-node.done .wf-shape{stroke:var(--teal); fill:#f0fdfa;}
+.wf-node.done .wf-text{fill:var(--teal-dark); font-weight:700;}
+.wf-node.done .wf-cap{fill:var(--teal);}
+.wf-node.gate .wf-shape{stroke-dasharray:7 5; stroke:var(--warning); fill:#fffdf7;}
+.wf-node.gate .wf-text{fill:#92400e;}
+.wf-node.gate.active .wf-shape{stroke:var(--warning); fill:var(--warning-bg); stroke-width:2.6; animation:wfGatePulse 1.6s ease-in-out infinite;}
+@keyframes wfGatePulse{0%,100%{filter:url(#wfShadowSoft) drop-shadow(0 0 0 rgba(217,119,6,.35));} 50%{filter:url(#wfShadowSoft) drop-shadow(0 0 7px rgba(217,119,6,.35));}}
+.wf-node.gate.done .wf-shape{stroke-dasharray:0; stroke:var(--teal); fill:#f0fdfa;}
+.wf-node.rej .wf-shape{stroke:var(--danger); fill:var(--danger-bg);}
+.wf-node.rej .wf-text{fill:#7f1d1d; font-weight:700;}
+.wf-check-badge{opacity:0; transform:scale(.4); transform-box:fill-box; transform-origin:center; transition:all .3s var(--ease);}
+.wf-node.done .wf-check-badge{opacity:1; transform:scale(1);}
+.wf-check-circle{fill:var(--teal);}
+.wf-check-mark{stroke:#fff; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round;}
+
+/* ---- LeanIX Inventory + ServiceNow sections (ported from file-1) ---- */
+.inv-head{display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
+.count-badge{background:var(--plan-bg); color:var(--plan-text); font-size:12px; font-weight:700; padding:3px 11px; border-radius:12px;}
+.sync-banner{background:var(--success-bg); border:1px solid var(--success-border); color:#065f46; border-radius:12px; padding:15px 19px; font-size:13px; line-height:1.65; margin:16px 0; box-shadow:var(--shadow-xs);}
+.lc{font-size:10.5px; padding:4px 11px; border-radius:10px; font-weight:700; white-space:nowrap; display:inline-flex; align-items:center; gap:5px;}
+.lc::before{content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+.lc.active{background:var(--success-bg); color:var(--success);} .lc.active::before{background:var(--success);}
+.lc.phaseout{background:var(--warning-bg); color:var(--warning);} .lc.phaseout::before{background:var(--warning);}
+.lc.eol{background:var(--danger-bg); color:var(--danger);} .lc.eol::before{background:var(--danger);}
+.lc.plan{background:var(--plan-bg); color:var(--plan-text);} .lc.plan::before{background:var(--plan-text);}
+
+.fstag{font-family:var(--lexend); font-size:11px; padding:4px 11px; border-radius:14px; font-weight:500; letter-spacing:normal; display:inline-flex; align-items:center; gap:5px;}
+.fstag::before{content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+.fstag.sim{background:#eef1f6; color:var(--muted);} .fstag.sim::before{background:var(--muted-light);}
+.fstag.draft{background:var(--warning-bg); color:var(--warning);} .fstag.draft::before{background:var(--warning);}
+.fstag.approved{background:var(--success-bg); color:var(--success);} .fstag.approved::before{background:var(--success);}
+
+.sn-ticket-head{display:flex; align-items:center; justify-content:space-between; padding:15px 19px; background:linear-gradient(90deg,#eff6ff,#f7fafd); border-bottom:1px solid var(--border-light); border-radius:var(--radius) var(--radius) 0 0;}
+.sn-id{font-size:15px; font-weight:700; color:var(--navy); margin-right:10px;}
+.sn-short{font-size:12.5px; color:var(--muted);}
+.sn-grid{display:grid; grid-template-columns:1fr 1fr; gap:0;}
+.sn-field{padding:15px 19px; border-bottom:1px solid var(--border-light); border-right:1px solid var(--border-light);}
+.sn-field:nth-child(even){border-right:none;}
+.sn-field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin-bottom:5px; font-weight:700;}
+.sn-field .val{font-size:13.5px; line-height:1.55; color:var(--text);}
+.sn-timeline{list-style:none; padding:6px 19px 16px;}
+.sn-timeline li{display:flex; gap:12px; align-items:flex-start; padding:9px 0; font-size:13px; color:var(--muted-light); border-bottom:1px solid var(--border-light); transition:color .2s;}
+.sn-timeline li:last-child{border-bottom:none;}
+.sn-timeline li.active{color:var(--text);}
+.sn-timeline li.done{color:var(--text);}
+.sn-timeline .ic{width:18px; flex-shrink:0; text-align:center; color:var(--muted-light);}
+.spinner{display:inline-block; width:13px; height:13px; border:2px solid #dbe3ee; border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+tr.new-row{animation:flash 1.6s var(--ease);}
+@keyframes flash{0%{background:#a7f3d0;} 100%{background:transparent;}}
+.tag.new-app{background:var(--success-bg); color:var(--success); margin-left:8px;} .tag.new-app::before{background:var(--success);}
+
+/* ================= RUN TRACE (console engine) ================= */
+.trace{position:relative; padding-left:34px; max-height:560px; overflow-y:auto;}
+.trace::before{content:''; position:absolute; left:10px; top:8px; bottom:16px; width:2px; background:var(--border);}
+.step-item{position:relative; padding:0 0 16px;}
+.step-item .dot{position:absolute; left:-34px; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:9px; font-weight:700; color:var(--muted-light); z-index:1;}
+.step-item.done .dot{border-color:var(--teal); background:var(--teal-bg); color:var(--teal);}
+.step-item.act .dot{border-color:var(--blue); color:var(--blue); box-shadow:0 0 0 4px var(--blue-l); animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.15);} 50%{box-shadow:0 0 0 8px rgba(37,99,235,.06);}}
+.step-item .hd{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.step-item .ttl{font-weight:700; font-size:13px;}
+.step-item.pend{opacity:.35;}
+.step-item .meta{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:3px;}
+.step-item .rec{margin-top:8px; border:1px solid var(--border); border-radius:8px; background:#fcfdfe; padding:10px 12px; font-family:var(--mono); font-size:11px; color:var(--ink2); white-space:pre-wrap; word-break:break-word; line-height:1.65; box-shadow:var(--shadow-xs);}
+.step-item.brk{padding-bottom:22px;}
+.step-item.brk .dot{border-style:dashed; border-color:var(--warning); color:var(--warning); background:var(--warning-bg);}
+.seal{margin-top:10px; border:2px dashed var(--warning); background:var(--warning-bg); border-radius:var(--radius); padding:14px;}
+.seal .st{font-family:var(--mono); font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--warning); font-weight:700;}
+.seal p{font-size:12.5px; color:#92400e; margin-top:5px; line-height:1.6;}
+.stamp{margin-top:10px; border:2px solid var(--teal); border-radius:var(--radius); background:var(--teal-bg); padding:14px;}
+.stamp .st{font-family:var(--mono); font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--teal-dark); font-weight:700;}
+.stamp dl{display:grid; grid-template-columns:auto 1fr; gap:3px 14px; margin-top:8px; font-family:var(--mono); font-size:11px;}
+.stamp dt{color:var(--teal-dark); font-weight:600;}
+.stamp dd{color:var(--ink2);}
+.rejbox{margin-top:10px; border:2px solid var(--danger); border-radius:var(--radius); background:var(--danger-bg); padding:14px;}
+.rejbox .st{font-family:var(--mono); font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--danger); font-weight:700;}
+.rejbox p{font-size:12.5px; color:#7f1d1d; margin-top:5px; line-height:1.6;}
+
+/* ================= APPLICATION REQUEST: conversational workspace ================= */
+.ar-workspace{display:flex; gap:16px; align-items:stretch; margin-top:4px;}
+.convo-sidebar{width:220px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); display:flex; flex-direction:column; overflow:hidden; height:680px;}
+.convo-new{margin:12px 12px 8px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; font-size:12.5px; font-weight:700; color:var(--navy); text-align:left; display:flex; align-items:center; gap:7px; transition:all .15s var(--ease); box-shadow:var(--shadow-xs);}
+.convo-new:hover{background:var(--teal-bg); border-color:var(--teal); color:var(--teal-dark);}
+.convo-list{flex:1; overflow-y:auto; padding:2px 8px 12px;}
+.convo-item{display:block; width:100%; text-align:left; padding:8px 10px; border-radius:8px; background:none; border:0; margin-bottom:2px; transition:background .15s var(--ease); cursor:pointer;}
+.convo-item:hover{background:var(--border-light);}
+.convo-item.on{background:var(--teal-bg);}
+.convo-item .ct{font-size:12.5px; font-weight:600; color:var(--ink2); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.convo-item.on .ct{color:var(--navy);}
+.convo-item .cm{font-size:10.5px; color:var(--muted-light); margin-top:2px; display:flex; justify-content:space-between; gap:6px;}
+.convo-empty{padding:14px 12px; font-size:11.5px; color:var(--muted-light); line-height:1.6;}
+
+.chat-col{flex:1; min-width:0;}
+.detail-col{flex:1; min-width:0; display:none;}
+.chat-wide-card, .detail-card{height:680px; display:flex; flex-direction:column;}
+.chat-wide-card .card-pad{flex:1; display:flex; flex-direction:column; min-height:0; padding:24px 26px;}
+.chat-layout{flex:1; min-height:0; align-items:stretch;}
+.chat-layout.run-active{grid-template-columns:1fr;}
+.chat-layout.run-active .chips{display:none;}
+.chat-card{flex:1; min-height:0; height:100%;}
+.chat-card .thread{max-height:none; flex:1; min-height:0;}
+
+.detail-card{padding:0;}
+.detail-card>header{flex-wrap:nowrap;}
+.detail-card>.body-wrap{flex:1; min-height:0; position:relative;}
+.detail-tabs{display:flex; gap:4px;}
+.dtab{padding:6px 13px; font-size:12px; font-weight:600; color:var(--muted); background:none; border:1px solid transparent; border-radius:7px; transition:all .15s var(--ease); white-space:nowrap;}
+.dtab:hover{background:var(--border-light); color:var(--ink2);}
+.dtab.on{background:var(--navy); color:#fff;}
+.detail-view{display:none; height:100%; overflow-y:auto;}
+.detail-view.on{display:block;}
+.detail-view .body{padding:16px 20px;}
+
+/* thinking / reasoning block (Claude-style collapsed reasoning) */
+.think{margin-bottom:9px;}
+.think summary{cursor:pointer; font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px; list-style:none; user-select:none;}
+.think summary::-webkit-details-marker{display:none;}
+.think summary::before{content:'▸'; font-size:9px; display:inline-block; transition:transform .15s var(--ease); color:var(--muted-light);}
+.think[open] summary::before{transform:rotate(90deg);}
+.think .think-body{margin-top:7px; padding:10px 12px; background:var(--border-light); border-radius:8px; font-size:11.5px; color:var(--muted); line-height:1.65; white-space:pre-wrap; border-left:2px solid var(--border);}
+
+/* compact tool-execution / pipeline card rendered inline in chat */
+.pipeline-card{display:flex; flex-direction:column; gap:1px; min-width:250px;}
+.pl-row{display:flex; align-items:center; gap:8px; padding:5px 3px; font-size:12px; color:var(--muted-light); border-radius:6px;}
+.pl-row.done{color:var(--ink2);}
+.pl-row.active{color:var(--navy); font-weight:600; background:var(--blue-bg);}
+.pl-ic{width:15px; text-align:center; flex-shrink:0; font-size:11px;}
+.pl-row.done .pl-ic{color:var(--teal);}
+
+/* inline HITL approval card rendered as a chat message */
+.inline-approval{min-width:260px;}
+.ia-head{display:flex; align-items:center; gap:8px;}
+
+/* data flow view */
+.df-summary{display:flex; align-items:stretch; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+.df-box{flex:1; min-width:150px; border-radius:10px; padding:12px 14px; border:1px solid var(--border);}
+.df-box.df-in{background:var(--blue-bg); border-color:var(--blue-l);}
+.df-box.df-proc{background:var(--violet-bg); border-color:var(--violet-l);}
+.df-box.df-out{background:var(--teal-bg); border-color:var(--teal-l);}
+.df-lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; color:var(--ink2); margin-bottom:4px;}
+.df-val{font-size:12.5px; line-height:1.55; color:var(--ink2);}
+.df-arrow{display:flex; align-items:center; justify-content:center; color:var(--muted-light); font-size:18px; flex-shrink:0;}
+.df-chain{display:flex; flex-direction:column;}
+.df-node{border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:#fcfdfe; opacity:.5; transition:opacity .2s var(--ease), border-color .2s var(--ease);}
+.df-node.done{opacity:1; border-color:var(--teal-l);}
+.df-node.active{opacity:1; border-color:var(--blue-light); box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.df-node-t{font-size:12.5px; font-weight:700; color:var(--navy);}
+.df-node-l{font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:2px;}
+.df-node-r{font-family:var(--mono); font-size:11px; color:var(--ink2); margin-top:6px; white-space:pre-wrap; line-height:1.6;}
+.df-connector{width:2px; height:14px; background:var(--border); margin:0 0 0 18px;}
+
+@media(max-width:1050px){
+  .ar-workspace{flex-direction:column;}
+  .convo-sidebar{width:100%; height:160px;}
+  .chat-wide-card, .detail-card{height:560px;}
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr;}
+  .nav{position:static; height:auto; border-right:0; border-bottom:1px solid var(--border); display:flex; overflow-x:auto; padding:0;}
+  .nav h6{display:none;}
+  .nav button{border-left:0; border-bottom:2.5px solid transparent; white-space:nowrap; padding:12px 14px;}
+  .nav button.on{border-bottom-color:var(--teal); border-left-color:transparent;}
+  main.content{padding:20px 16px 50px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .chat-layout{grid-template-columns:1fr;}
+  .ar-banner{flex-direction:column; align-items:flex-start; gap:10px;}
+  #submitAnotherBtn{margin-left:0;}
+  .step span:not(.num){display:none;}
+  .step-connector{width:14px;}
+}
+@media(prefers-reduced-motion:no-preference){
+  .step-item .rec,.seal,.stamp,.rejbox{animation:slideIn .3s ease;}
+  @keyframes slideIn{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;}}
+}
+
+/* ============================================================================
+   APPLICATION REQUEST — DENSE WORKSPACE PASS
+   Scoped to #p-apprequest. Same navy/teal family, tightened and deepened.
+   ========================================================================= */
+#p-apprequest{
+  --ar-line:#e4e9f1;
+  --ar-line-2:#eef2f7;
+  --ar-tint:#f7f9fc;
+  --ar-head:linear-gradient(180deg,#fdfefe,#f4f7fb);
+  --ar-rail:linear-gradient(90deg,#0d9488,#2563eb);
+}
+
+/* ---- page becomes a full-height column instead of a scrolling document ---- */
+body:has(#p-apprequest.on) main.content{padding:14px 18px 16px; max-width:none;}
+#p-apprequest.on{
+  display:flex; flex-direction:column; gap:10px;
+  height:calc(100vh - 86px); min-height:580px;
+}
+
+/* ---- compact page header: title left, one-line context right ---- */
+#p-apprequest .ar-pagehead{display:flex; align-items:center; gap:18px; flex-shrink:0;}
+#p-apprequest .ar-pagehead-l{flex-shrink:0;}
+#p-apprequest .eyebrow{margin-bottom:1px; font-size:9.5px; letter-spacing:1.1px;}
+#p-apprequest h1{font-size:19px; line-height:1.2;}
+#p-apprequest .ar-pagehead .lede{
+  margin:0; font-size:12px; line-height:1.5; color:var(--muted);
+  border-left:1px solid var(--ar-line); padding-left:18px; max-width:760px;
+}
+
+/* ---- stepper: one continuous rail edge-to-edge ---- */
+#p-apprequest .ar-banner{
+  margin:0; flex-shrink:0; padding:9px 16px; border-radius:11px;
+  background:linear-gradient(180deg,#ffffff,#f8fafd);
+  border:1px solid var(--ar-line); box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+#p-apprequest .steps-row{width:100%;}
+#p-apprequest .step{font-size:11.5px; gap:7px; padding:2px 0;}
+#p-apprequest .step .num{width:21px; height:21px; font-size:10.5px;}
+#p-apprequest .step-connector{flex:1; min-width:14px; margin:0 10px; height:2px;}
+#p-apprequest #submitAnotherBtn{padding:6px 13px; font-size:11.5px; border-radius:8px; margin-left:14px;}
+
+/* ---- workspace fills whatever is left ---- */
+#p-apprequest .ar-workspace{margin:0; flex:1; min-height:0; gap:10px;}
+#p-apprequest .convo-sidebar,
+#p-apprequest .chat-wide-card,
+#p-apprequest .detail-card{height:100%;}
+#p-apprequest .chat-col, #p-apprequest .detail-col{display:flex; min-height:0;}
+#p-apprequest .chat-col > .wide-card, #p-apprequest .detail-col > .card{flex:1; min-height:0;}
+#p-apprequest .detail-col{flex:1.04;}
+
+/* ---- nested sidebar: narrower, tinted so it reads as a level below the main nav ---- */
+#p-apprequest .convo-sidebar{
+  width:194px; border-radius:12px; background:var(--ar-tint);
+  border-color:var(--ar-line); box-shadow:none;
+}
+#p-apprequest .convo-new{
+  margin:9px 9px 6px; padding:7px 10px; font-size:11.5px; border-radius:7px;
+  border-color:var(--ar-line); color:var(--teal-dark);
+}
+#p-apprequest .convo-list{padding:0 6px 8px;}
+#p-apprequest .convo-item{padding:6px 9px; border-radius:7px; position:relative;}
+#p-apprequest .convo-item .ct{font-size:11.5px;}
+#p-apprequest .convo-item .cm{font-size:9.5px; margin-top:1px;}
+#p-apprequest .convo-item.on{background:#fff; box-shadow:0 1px 2px rgba(15,23,42,.06);}
+#p-apprequest .convo-item.on::before{
+  content:''; position:absolute; left:0; top:6px; bottom:6px; width:2.5px;
+  border-radius:2px; background:var(--teal);
+}
+
+/* ---- chat panel ---- */
+#p-apprequest .wide-card, #p-apprequest .detail-card{border-radius:12px; border-color:var(--ar-line);}
+#p-apprequest .wide-card:hover, #p-apprequest .card:hover{transform:none;}
+#p-apprequest .chat-wide-card .card-pad{padding:11px 13px;}
+#p-apprequest .chat-head{
+  display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  padding-bottom:9px; margin-bottom:9px; border-bottom:1px solid var(--ar-line-2);
+}
+#p-apprequest .section-title{font-size:13px; margin:0; gap:6px;}
+#p-apprequest .section-subtitle{font-size:11.5px; margin:0; flex:1; min-width:160px;}
+#p-apprequest .chat-layout{gap:12px;}
+#p-apprequest .chat-layout:not(.run-active){grid-template-columns:1fr 226px;}
+#p-apprequest .chat-card{border-radius:10px; border-color:var(--ar-line); background:var(--ar-tint);}
+#p-apprequest .chat-card .thread{padding:13px 14px; gap:10px;}
+#p-apprequest .chat-layout:not(.run-active) .thread > *{max-width:min(82%,660px);}
+#p-apprequest .chat-layout:not(.run-active) .thread{align-items:flex-start;}
+#p-apprequest .chat-layout:not(.run-active) .thread .msg.u{align-self:flex-end;}
+#p-apprequest .msg .bub{padding:9px 12px; font-size:12.5px; line-height:1.55; border-radius:11px; overflow:hidden;}
+#p-apprequest .msg .who{font-size:9px; margin-bottom:3px;}
+#p-apprequest .composer{padding:9px 10px; gap:8px; background:#fff; border-color:var(--ar-line);}
+#p-apprequest .composer textarea{min-height:38px; padding:8px 11px; font-size:12.5px; border-color:var(--ar-line);}
+
+/* ---- suggestion chips ---- */
+#p-apprequest .chips h6{font-size:9px; margin-bottom:6px;}
+#p-apprequest .chips button{padding:8px 10px; margin-bottom:6px; font-size:11.5px; line-height:1.45; border-radius:8px; border-color:var(--ar-line);}
+#p-apprequest .chips button b{font-size:11.5px; margin-bottom:1px;}
+
+/* ---- inline pipeline card: reads as a nested panel, not loose rows ---- */
+#p-apprequest .pipeline-card{
+  margin:2px -12px -9px; padding:4px 12px 8px;
+  border-top:1px solid var(--ar-line-2);
+}
+#p-apprequest .pl-row{padding:4px 6px; font-size:11.5px; gap:7px;}
+#p-apprequest .pl-row.active{background:linear-gradient(90deg,var(--blue-bg),transparent); border-radius:5px;}
+#p-apprequest .pl-row .tag{font-size:9.5px; padding:1px 7px;}
+
+/* ---- inline approval card: the one warm moment in a cool interface ---- */
+#p-apprequest .inline-approval{
+  margin:-9px -12px; padding:11px 12px; border-radius:11px;
+  background:linear-gradient(180deg,#fffdf6,#fffaf0);
+  border:1px solid var(--warning-border);
+}
+#p-apprequest .inline-approval .evidence{background:#fff; border-color:#f3e2bd; font-size:10.5px; padding:8px 10px;}
+#p-apprequest .inline-approval .ia-actions{margin-top:10px !important;}
+
+/* ---- detail panel ---- */
+#p-apprequest .detail-card > header{
+  padding:7px 10px; gap:6px; background:var(--ar-head); border-color:var(--ar-line);
+  border-radius:12px 12px 0 0;
+}
+#p-apprequest .detail-tabs{gap:2px; flex-wrap:wrap;}
+#p-apprequest .dtab{padding:5px 10px; font-size:11.5px; border-radius:6px;}
+#p-apprequest .dtab.on{background:var(--navy); box-shadow:0 1px 3px rgba(15,23,42,.22);}
+#p-apprequest .dtab.locked{display:none;}
+#p-apprequest .dtab.fresh:not(.on){
+  color:var(--teal-dark); background:var(--teal-bg); border-color:var(--teal-l);
+}
+#p-apprequest #arRunMeta{font-size:10px !important;}
+#p-apprequest .detail-view .body{padding:11px 13px;}
+
+/* workflow view fills the panel, header pinned */
+#p-apprequest #view-workflow.on{display:flex; flex-direction:column; overflow:hidden;}
+#p-apprequest .workflow-diagram{flex:1; display:flex; flex-direction:column; min-height:0;}
+#p-apprequest .wf-panel-head{padding:7px 12px; flex-shrink:0;}
+#p-apprequest .wf-live{font-size:10.5px;}
+#p-apprequest .wf-legend{gap:9px;}
+#p-apprequest .wf-legend-item{font-size:9.5px;}
+#p-apprequest .workflow-diagram-scroll{flex:1; max-height:none; padding:8px 4px;}
+#p-apprequest .wf-text{font-size:13px;}
+#p-apprequest .wf-sub{font-size:9.5px;}
+
+/* run trace + data flow: tighter rhythm */
+#p-apprequest .trace{max-height:none; padding-left:28px;}
+#p-apprequest .step-item{padding-bottom:11px;}
+#p-apprequest .step-item .dot{left:-28px; width:19px; height:19px; font-size:8.5px;}
+#p-apprequest .step-item .ttl{font-size:12px;}
+#p-apprequest .step-item .meta{font-size:10px;}
+#p-apprequest .step-item .rec{padding:8px 10px; font-size:10.5px; margin-top:6px;}
+#p-apprequest .seal, #p-apprequest .stamp, #p-apprequest .rejbox{padding:10px 11px; margin-top:8px;}
+#p-apprequest .df-summary{gap:7px; margin-bottom:12px;}
+#p-apprequest .df-box{padding:9px 11px; min-width:120px;}
+#p-apprequest .df-node{padding:8px 10px;}
+#p-apprequest .df-connector{height:10px;}
+#p-apprequest .df-node-r{font-size:10.5px; margin-top:4px;}
+
+/* ---- the two revealed cards, now living inside the panel ---- */
+#p-apprequest .detail-view > .card{
+  margin-top:0 !important; border:0; border-radius:0; box-shadow:none;
+}
+#p-apprequest .detail-view > .card > header{
+  background:transparent; padding:11px 13px 9px; border-color:var(--ar-line-2);
+}
+#p-apprequest .detail-view > .card > .body{padding:11px 13px;}
+#p-apprequest .detail-view th{padding:7px 11px; font-size:9.5px;}
+#p-apprequest .detail-view td{padding:7px 11px; font-size:12px;}
+#p-apprequest .sync-banner{padding:10px 13px; font-size:12px; margin:0 0 11px; border-radius:9px;}
+#p-apprequest #snBanner{margin:11px 0 0;}
+#p-apprequest .sn-ticket-head{padding:10px 13px; border-radius:9px 9px 0 0; border:1px solid var(--ar-line); border-bottom:0;}
+#p-apprequest .sn-grid{border:1px solid var(--ar-line); border-top:0;}
+#p-apprequest .sn-field{padding:9px 13px;}
+#p-apprequest .sn-field:nth-last-child(-n+2){border-bottom:0;}
+#p-apprequest .sn-field label{font-size:9.5px; margin-bottom:3px;}
+#p-apprequest .sn-field .val{font-size:12.5px;}
+#p-apprequest .sn-timeline{padding:9px 2px 4px;}
+#p-apprequest .sn-timeline li{padding:7px 0; font-size:12px;}
+#p-apprequest .count-badge{font-size:10.5px; padding:2px 9px;}
+
+/* ---- narrow screens: stack, and give the panels breathing room back ---- */
+@media(max-width:1050px){
+  #p-apprequest.on{height:auto; min-height:0;}
+  #p-apprequest .ar-pagehead{display:block;}
+  #p-apprequest .ar-pagehead .lede{border-left:0; padding-left:0; margin-top:4px;}
+  #p-apprequest .convo-sidebar{width:100%; height:132px;}
+  #p-apprequest .chat-wide-card, #p-apprequest .detail-card{height:520px;}
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <svg class="logo-mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#2dd4bf"/>
+        <stop offset="1" stop-color="#38bdf8"/>
+      </linearGradient>
+    </defs>
+    <path d="M16 2 L29 9 V23 L16 30 L3 23 V9 Z" fill="url(#logoGrad)"/>
+    <path d="M16 9 L22.5 12.7V20.3L16 24L9.5 20.3V12.7Z" fill="#0f172a" opacity=".82"/>
+    <circle cx="16" cy="16.5" r="3.1" fill="#fff"/>
+  </svg>
+  <span class="brand-name">Fluid</span>
+  <span class="brand-divider"></span>
+  <span class="app-name">EA Agents</span>
+  <span class="spacer"></span>
+  <button class="topbar-btn" onclick="go('apprequest')">Application Request</button>
+  <span class="pill warn">prototype</span>
+</header>
+
+<div class="shell">
+  <nav class="nav" id="nav"></nav>
+  <div class="main-wrap">
+  <main class="content">
+
+  <!-- ===== OVERVIEW ===== -->
+  <div class="page on" id="p-overview">
+    <div class="eyebrow">operations</div>
+    <h1>Overview</h1>
+    <p class="lede">Fluid EA Agents runs the multi-step, human-gated workflows above SAP LeanIX. LeanIX stays the system of record — nothing writes to it without an architect's approval.</p>
+    <section class="grid g4">
+      <div class="stat s-blue"><div class="k">Runs today <span class="info-ic" title="Interactive chat-initiated runs plus unattended batch runs started today.">i</span></div><div class="v" id="s-runs">18</div><div class="n">14 interactive · 4 batch</div></div>
+      <div class="stat s-amber"><div class="k">Awaiting approval <span class="info-ic" title="Items sitting in the Approvals queue, suspended until an architect decides.">i</span></div><div class="v" id="s-appr">3</div><div class="n">1 breaching SLA</div></div>
+      <div class="stat s-teal"><div class="k">Committed to LeanIX <span class="info-ic" title="Runs that were approved, written to LeanIX, and sealed.">i</span></div><div class="v" id="s-comm">11</div><div class="n">sealed &amp; attributed</div></div>
+      <div class="stat s-red"><div class="k">Guardrail events <span class="info-ic" title="Times a policy check fired — PII detection, confidence routing, write-scope enforcement, or injection defence.">i</span></div><div class="v" id="s-guard">4</div><div class="n">2 blocked · 2 routed</div></div>
+    </section>
+    <section class="card">
+      <header><h2>System posture</h2><span class="tag t-ok">assisted only</span><span class="tag t-rule">no autonomous commit</span></header>
+      <div class="body grid g2">
+        <div class="note">Every proposal requires a named human decision before any write. There is no confidence level at which Fluid EA Agents commits on its own — that is a product boundary, not a setting.</div>
+        <div class="note">All inference runs on internally deployed models inside the client perimeter. No fact sheet content leaves the network. The model router enforces this.</div>
+      </div>
+    </section>
+    <section class="card">
+      <header><h2>Where work enters</h2></header>
+      <table>
+        <tr><th>Entry point</th><th>Who</th><th>Starts</th></tr>
+        <tr><td><b>Application Request</b></td><td>Business requester</td><td>An interactive run — no EA knowledge needed</td></tr>
+        <tr><td><b>Approvals queue</b></td><td>Architect</td><td>Resumes a suspended run on approval</td></tr>
+        <tr><td><b>Schedule</b></td><td>Unattended</td><td>Batch run — drafts land in the queue by morning</td></tr>
+        <tr><td><b>LeanIX webhook</b></td><td>LeanIX itself</td><td>Resumes a run when a survey is completed</td></tr>
+      </table>
+    </section>
+  </div>
+
+  <!-- ===== APPLICATION REQUEST (merged Chat + Run Trace) ===== -->
+  <div class="page" id="p-apprequest">
+    <div class="ar-pagehead">
+      <div class="ar-pagehead-l">
+        <div class="eyebrow">Workspace <span style="color:var(--muted3)">/</span> <span style="color:var(--ink2)">Application Request</span></div>
+        <h1>Application Request</h1>
+      </div>
+      <p class="lede">A business person describes what they need. Fluid EA Agents checks LeanIX, runs the agent pipeline, and — the moment a human decision is required — hands off to an architect in Approvals before resuming.</p>
+    </div>
+
+    <div class="ar-banner" id="arBanner" style="display:none">
+      <div class="progressbar">
+        <div class="steps-row" id="stepsRow">
+          <div class="step active" id="step1" title="The business request has been submitted via Fluid EA Agents chat."><span class="num">1</span><span>Business Request</span></div>
+          <div class="step-connector" id="conn1"></div>
+          <div class="step" id="step2" title="Agents run the use case&#39;s workflow steps and assemble a draft output."><span class="num">2</span><span>AI Analysis &amp; Draft</span></div>
+          <div class="step-connector" id="conn2"></div>
+          <div class="step" id="step3" title="The run is suspended until a named architect approves or rejects the draft — resolved right here in the chat."><span class="num">3</span><span>Architect Approval</span></div>
+          <div class="step-connector" id="conn3"></div>
+          <div class="step" id="step4" title="After a second architect sign-off, the output and its audit trail are synced to the LeanIX inventory."><span class="num">4</span><span>Synced to LeanIX</span></div>
+          <div class="step-connector" id="conn4"></div>
+          <div class="step" id="step5" title="A simulated ServiceNow ticket tracks the follow-up task through to resolution."><span class="num">5</span><span>ServiceNow Provisioning</span></div>
+        </div>
+      </div>
+      <button id="submitAnotherBtn" onclick="newConversation()">New Chat</button>
+    </div>
+
+    <div class="ar-workspace" id="arWorkspace">
+      <aside class="convo-sidebar" id="convoSidebar">
+        <button class="convo-new" onclick="newConversation()">+ &nbsp;New chat</button>
+        <div class="convo-list" id="convoList"></div>
+      </aside>
+
+      <div class="chat-col">
+        <section class="wide-card chat-wide-card">
+          <div class="card-pad">
+            <div class="chat-head">
+              <div class="section-title">✨ Fluid EA Agents Chat</div>
+              <div class="section-subtitle" id="chatSubtitle">No EA knowledge required. Describe what your team needs, or try a templatised use case.</div>
+            </div>
+            <div class="chat-layout" id="chatLayout">
+              <div class="chat-card">
+                <div class="thread" id="thread"></div>
+                <div class="composer">
+                  <textarea id="chatInput" placeholder="Describe what your team needs…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+                  <button class="btn g" onclick="sendChat()">Send</button>
+                </div>
+              </div>
+              <div class="chips" id="chipsCol">
+                <h6>Templatised use case</h6>
+                <button onclick="pickSuggestion('costwhatif')"><b>Cost What-If Analysis</b>Scenario Analysis · Business Architect Agent</button>
+                <button onclick="pickSuggestion('surveyauto')"><b>Architecture Survey Automation</b>EA Management · Enterprise Architect Agent</button>
+                <button onclick="pickSuggestion('solutionreview')"><b>Automated Solution Review</b>Governance · Governance Agent</button>
+                <button onclick="pickSuggestion('diagramgen')"><b>Architecture Diagram Generation</b>Content · Repository Agent</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="detail-col" id="detailCol">
+        <section class="card detail-card">
+          <header>
+            <div class="detail-tabs" id="detailTabs">
+              <button class="dtab on" data-tab="workflow" onclick="switchDetailTab('workflow')">Workflow</button>
+              <button class="dtab" data-tab="dataflow" onclick="switchDetailTab('dataflow')">Data Flow</button>
+              <button class="dtab" data-tab="runtrace" onclick="switchDetailTab('runtrace')">Run Trace</button>
+              <button class="dtab locked" data-tab="inventory" id="dtab-inventory" onclick="switchDetailTab('inventory')">Inventory</button>
+              <button class="dtab locked" data-tab="servicenow" id="dtab-servicenow" onclick="switchDetailTab('servicenow')">ServiceNow</button>
+            </div>
+            <span class="mono dim" id="arRunMeta" style="margin-left:auto;font-size:11px"></span>
+          </header>
+          <div class="body-wrap">
+            <div class="detail-view on" id="view-workflow">
+              <div class="workflow-diagram">
+                <div class="wf-panel-head">
+                  <div class="wf-live"><span class="live-dot"></span>Live Workflow Execution</div>
+                  <div class="wf-legend">
+                    <span class="wf-legend-item"><i class="dot pending"></i>Pending</span>
+                    <span class="wf-legend-item"><i class="dot active"></i>In Progress</span>
+                    <span class="wf-legend-item"><i class="dot done"></i>Complete</span>
+                  </div>
+                </div>
+                <div class="workflow-diagram-scroll">
+                  <svg id="wfSvg" viewBox="0 0 620 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <marker id="wf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+                        <path d="M0,0 L10,5 L0,10 Z" fill="#8b98ab"/>
+                      </marker>
+                      <marker id="wf-arrow-done" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+                        <path d="M0,0 L10,5 L0,10 Z" fill="#0d9488"/>
+                      </marker>
+                      <pattern id="wfDotGrid" width="26" height="26" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1.2" fill="#e6eaf1"/>
+                      </pattern>
+                      <filter id="wfShadowSoft" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="1.5" stdDeviation="2.4" flood-color="#0f172a" flood-opacity=".13"/>
+                      </filter>
+                    </defs>
+                    <rect id="wfBgRect" x="0" y="0" width="620" height="400" fill="#fcfdff"/>
+                    <rect id="wfDotRect" x="0" y="0" width="620" height="400" fill="url(#wfDotGrid)"/>
+                    <g id="wfEdges"></g>
+                    <g id="wfNodes"></g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-view" id="view-dataflow">
+              <div class="body" id="dataflowWrap">
+                <p class="dim" style="padding-left:0">No run yet. Send a request in the chat or pick a templatised use case.</p>
+              </div>
+            </div>
+
+            <div class="detail-view" id="view-runtrace">
+              <div class="body"><div class="trace" id="arTrace">
+                <p class="dim" style="padding-left:0">No run yet. Send a request in the chat or pick a templatised use case.</p>
+              </div></div>
+            </div>
+
+            <div class="detail-view" id="view-inventory">
+        <section class="card" id="invCard" style="display:none;margin-top:18px">
+          <header>
+            <div class="inv-head"><h2>LeanIX Inventory</h2><span class="count-badge" id="invCount"></span></div>
+            <span class="dim mono" style="margin-left:auto;font-size:10px">system of record</span>
+          </header>
+          <div class="body">
+            <div class="sync-banner" id="syncBanner"></div>
+            <table>
+              <thead><tr><th>Application</th><th>Capability</th><th>Lifecycle</th><th>Owner</th></tr></thead>
+              <tbody id="invBody"></tbody>
+            </table>
+          </div>
+        </section>
+            </div>
+
+            <div class="detail-view" id="view-servicenow">
+        <section class="card" id="snowCard" style="display:none;margin-top:18px">
+          <header><h2>ServiceNow Provisioning</h2><span class="fstag sim" style="margin-left:auto">Simulated — no live integration</span></header>
+          <div class="body">
+            <p class="dim" style="font-size:12.5px;margin-bottom:16px;line-height:1.6">LeanIX and ServiceNow are not integrated for this client today. The agent bridges the two by opening and tracking a follow-up ticket on the client's behalf.</p>
+            <div class="sn-ticket-head">
+              <div><span class="sn-id" id="snId">—</span><span class="sn-short" id="snShort"></span></div>
+              <span class="fstag draft" id="snStatusTag">Open</span>
+            </div>
+            <div class="sn-grid">
+              <div class="sn-field"><label>Requested Item</label><div class="val" id="snApp"></div></div>
+              <div class="sn-field"><label>Assignment Group</label><div class="val" id="snGroup"></div></div>
+              <div class="sn-field"><label>Requested For</label><div class="val" id="snOwner"></div></div>
+              <div class="sn-field"><label>Priority</label><div class="val">3 – Moderate</div></div>
+            </div>
+            <ul class="sn-timeline" id="snTimeline">
+              <li id="snT1"><span class="ic"><span class="spinner"></span></span><span id="snT1txt">Ticket created from the approved run output…</span></li>
+              <li id="snT2"><span class="ic">○</span><span id="snT2txt">Routed to assignment group and validated…</span></li>
+              <li id="snT3"><span class="ic">○</span><span id="snT3txt">Follow-up task executed (simulated)…</span></li>
+              <li id="snT4"><span class="ic">○</span><span id="snT4txt">Stakeholders notified — task complete…</span></li>
+            </ul>
+            <div class="sync-banner" id="snBanner" style="display:none"></div>
+          </div>
+        </section>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== AGENTS ===== -->
+  <div class="page" id="p-agents">
+    <div class="eyebrow">Layer 2 · LeanIX-native</div>
+    <h1>Agents <span class="info-ic" title="A narrow, single-purpose unit with a fixed input/output shape and a confidence score — not a general-purpose assistant.">i</span></h1>
+    <p class="lede">Six narrow units. Each has a fixed input/output shape, emits a confidence score, and lists the evidence it used. None holds a credential and none writes to LeanIX directly.</p>
+    <section class="grid g2" id="agentGrid"></section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>What is decided by a rule, not a model</h2></header>
+      <table>
+        <tr><th>Decision</th><th>How</th><th>Why</th></tr>
+        <tr><td>Parse a free-text request</td><td><span class="tag t-auto">model</span></td><td>No rule can read prose</td></tr>
+        <tr><td>Which lifecycle branch</td><td><span class="tag t-rule">rule</span></td><td>Lifecycle is an enum — a switch statement</td></tr>
+        <tr><td>Compare two descriptions</td><td><span class="tag t-auto">model</span></td><td>Semantic judgment, no rule available</td></tr>
+        <tr><td>Capability overlap</td><td><span class="tag t-rule">graph</span></td><td>Derived from the LeanIX relation graph</td></tr>
+        <tr><td>Who reviews this</td><td><span class="tag t-rule">rule</span></td><td>Responsible subscription role</td></tr>
+        <tr><td>TIME quadrant</td><td><span class="tag t-rule">rule</span></td><td>LeanIX calculates from fit scores</td></tr>
+        <tr><td>Whether to commit</td><td><span class="tag t-human">human</span></td><td>Always. No exceptions.</td></tr>
+      </table>
+    </section>
+  </div>
+
+  <!-- ===== APPROVALS ===== -->
+  <div class="page" id="p-approvals">
+    <div class="eyebrow">Layer 0 · in-LeanIX surface</div>
+    <h1>Approvals</h1>
+    <p class="lede">In production this renders inside the LeanIX workspace as a custom report. Approving sets the LeanIX quality seal — and if the item came from an Application Request run, deciding here resumes that run automatically.</p>
+    <section class="card">
+      <header><h2>Queue</h2><span class="info-ic" title="Draft proposals waiting on a named architect decision before anything writes to LeanIX.">i</span><span class="tag t-wait" id="qct">3 waiting</span></header>
+      <table id="queueTbl"></table>
+    </section>
+    <section id="apDetail"></section>
+  </div>
+
+  <!-- ===== AUDIT ===== -->
+  <div class="page" id="p-audit">
+    <div class="eyebrow">Cross-cutting · audit store</div>
+    <h1>Audit</h1>
+    <p class="lede">LeanIX's changelog records <em>what</em> changed. This records <em>why it was proposed</em> — including field values as they were at read time.</p>
+    <section class="card">
+      <header><h2>Decision records</h2><span class="info-ic" title="Why a proposal was made, not just what changed — field values captured at read time, plus who decided.">i</span><span class="tag t-rule" id="auct">0 records</span><span class="dim mono" style="margin-left:auto;font-size:10px">immutable · 7 yr retention</span></header>
+      <table id="auditTbl"></table>
+    </section>
+    <section class="card" id="recCard" style="display:none;margin-top:16px">
+      <header><h2>Record detail</h2><span class="mono dim" id="recId" style="font-size:11px"></span></header>
+      <div class="body"><div class="step-item"><div class="rec" id="recBody"></div></div></div>
+    </section>
+  </div>
+
+  <!-- ===== TELEMETRY ===== -->
+  <div class="page" id="p-telemetry">
+    <div class="eyebrow">Cross-cutting · telemetry</div>
+    <h1>Telemetry</h1>
+    <p class="lede">Every outbound call passes through the tool broker. Rate limits on the LeanIX API — not model speed — are the real ceiling on batch throughput.</p>
+    <section class="grid g4">
+      <div class="stat s-teal"><div class="k">Draft latency p95 <span class="info-ic" title="95th-percentile time from request received to draft assembled.">i</span></div><div class="v" id="t-lat">31s</div><div class="n">target &lt; 45s</div></div>
+      <div class="stat s-amber"><div class="k">Inference spend <span class="info-ic" title="Model inference cost accrued today, against the daily cap.">i</span></div><div class="v" id="t-cost">$14.20</div><div class="n">cap $200/day</div></div>
+      <div class="stat s-blue"><div class="k">API calls <span class="info-ic" title="Outbound calls made through the tool broker today.">i</span></div><div class="v" id="t-calls">1,284</div><div class="n">via tool broker</div></div>
+      <div class="stat s-teal"><div class="k">Batch throughput <span class="info-ic" title="Applications scored per hour during unattended batch runs.">i</span></div><div class="v">247<span style="font-size:14px">/hr</span></div><div class="n">apps scored</div></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Rate-limit headroom</h2></header>
+      <div class="body grid" style="gap:16px" id="rlGrid"></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Cost by step</h2><span class="dim mono" style="margin-left:auto;font-size:10px">last 24h</span></header>
+      <table>
+        <tr><th>Step</th><th>Calls</th><th>Model</th><th>Spend</th></tr>
+        <tr><td>Attribute extraction</td><td class="mono">312</td><td class="mono">local-8b</td><td class="mono">$1.90</td></tr>
+        <tr><td>Description comparison</td><td class="mono">844</td><td class="mono">local-70b</td><td class="mono">$9.40</td></tr>
+        <tr><td>Business case drafting</td><td class="mono">61</td><td class="mono">local-70b</td><td class="mono">$2.60</td></tr>
+        <tr><td>Branch selection</td><td class="mono">312</td><td class="dim">none — rule</td><td class="mono">$0.00</td></tr>
+        <tr><td>Overlap scoring</td><td class="mono">288</td><td class="dim">none — graph</td><td class="mono">$0.00</td></tr>
+      </table>
+    </section>
+  </div>
+
+  <!-- ===== EVALS ===== -->
+  <div class="page" id="p-evals">
+    <div class="eyebrow">Cross-cutting · evaluation</div>
+    <h1>Evaluations</h1>
+    <p class="lede">A held-out set of applications with architect-confirmed answers, re-run on every prompt or model change. Without this, a prompt tweak silently degrades 300 classifications.</p>
+    <section class="grid g3">
+      <div class="stat s-teal"><div class="k">Architect agreement <span class="info-ic" title="Share of the held-out set where the model's verdict matches the architect's confirmed answer.">i</span></div><div class="v">78.4%</div><div class="n">target &gt; 75%</div></div>
+      <div class="stat s-blue"><div class="k">Held-out set <span class="info-ic" title="Applications with architect-confirmed answers, re-run on every prompt or model change.">i</span></div><div class="v">120</div><div class="n">confirmed apps</div></div>
+      <div class="stat s-teal"><div class="k">Invalid capability IDs <span class="info-ic" title="Model outputs referencing a capability ID that does not exist in the workspace — should always be zero.">i</span></div><div class="v">0</div><div class="n">output constrained</div></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Per-agent agreement</h2></header>
+      <div class="body grid" style="gap:16px" id="evGrid"></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Regression history</h2></header>
+      <table>
+        <tr><th>Run</th><th>Change</th><th>Agreement</th><th>Verdict</th></tr>
+        <tr><td class="mono">ev-0094</td><td>intake prompt v12 — tightened user-count extraction</td><td class="mono">78.4%</td><td><span class="tag t-ok">shipped</span></td></tr>
+        <tr><td class="mono">ev-0093</td><td>router: description compare moved to local-70b</td><td class="mono">77.9%</td><td><span class="tag t-ok">shipped</span></td></tr>
+        <tr><td class="mono">ev-0092</td><td>overlap weights — raised capability relation to 0.5</td><td class="mono">76.1%</td><td><span class="tag t-ok">shipped</span></td></tr>
+        <tr><td class="mono">ev-0091</td><td>intake prompt v11 — merged hosting + data fields</td><td class="mono">71.2%</td><td><span class="tag t-bad">rolled back</span></td></tr>
+      </table>
+      <div class="body"><div class="note">ev-0091 is the reason this page exists. Agreement fell 5 points on a change that looked like a simplification — caught before a single client record was touched.</div></div>
+    </section>
+  </div>
+
+  <!-- ===== GUARDRAILS ===== -->
+  <div class="page" id="p-guardrails">
+    <div class="eyebrow">Cross-cutting · policy</div>
+    <h1>Guardrails</h1>
+    <p class="lede">Four checks that fire regardless of what any agent proposes. Content from surveys, contracts and documents is treated as data, never as instructions.</p>
+    <section class="grid g2">
+      <div class="card"><header><h2>Active policies</h2><span class="info-ic" title="Checks that run on every proposal regardless of confidence or scenario.">i</span></header><table>
+        <tr><td><b>Personal data detection</b><div class="dim" style="font-size:12px;margin-top:2px">Flags GDPR scope and attaches a privacy task</div></td><td style="width:1%"><span class="tag t-ok">on</span></td></tr>
+        <tr><td><b>Prompt-injection defence</b><div class="dim" style="font-size:12px;margin-top:2px">Instructions in ingested documents are quarantined</div></td><td><span class="tag t-ok">on</span></td></tr>
+        <tr><td><b>Write-scope enforcement</b><div class="dim" style="font-size:12px;margin-top:2px">Denies mutations outside approved fact sheet types</div></td><td><span class="tag t-ok">on</span></td></tr>
+        <tr><td><b>Confidence routing</b><div class="dim" style="font-size:12px;margin-top:2px">Below 0.60 → collect via survey, not guess</div></td><td><span class="tag t-ok">on</span></td></tr>
+      </table></div>
+      <div class="card"><header><h2>Confidence bands</h2><span class="info-ic" title="Confidence changes how a draft is surfaced to the architect — it never decides whether a human reviews it.">i</span></header><div class="body">
+        <table>
+          <tr><th>Score</th><th>Behaviour</th></tr>
+          <tr><td class="mono">≥ 0.85</td><td>Draft for review</td></tr>
+          <tr><td class="mono">0.60 – 0.84</td><td>Draft with uncertain fields flagged</td></tr>
+          <tr><td class="mono">&lt; 0.60</td><td>Survey the owner instead of guessing</td></tr>
+        </table>
+        <div class="note" style="margin-top:14px">No band auto-commits. Confidence changes <em>how</em> a proposal is surfaced, never <em>whether</em> a human sees it.</div>
+      </div></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Event log</h2><span class="tag t-rule" id="grct">0 events</span></header>
+      <div class="body" id="grLog"><p class="dim">No events yet. Start a run on Application Request — the write-scope check fires once an architect approves, and the sync-to-LeanIX gate fires once a run trace completes.</p></div>
+    </section>
+  </div>
+
+  <!-- ===== IDENTITY ===== -->
+  <div class="page" id="p-identity">
+    <div class="eyebrow">Cross-cutting · identity</div>
+    <h1>Identity</h1>
+    <p class="lede">Two identities matter: the human who approved, and the account that wrote. If a single service account writes everything, the LeanIX changelog says "API user" for every change.</p>
+    <section class="grid g2">
+      <div class="card"><header><h2>Write identity</h2><span class="info-ic" title="The account credited in the LeanIX changelog for a given write — kept distinct from the account used for reads.">i</span><span class="tag t-ok">on-behalf-of</span></header><div class="body">
+        <p style="font-size:13px;line-height:1.6">Approved writes carry the approving architect's identity. A scoped technical account handles reads and batch work only.</p>
+        <table style="margin-top:12px">
+          <tr><th>Purpose</th><th>Identity</th><th>Scope</th></tr>
+          <tr><td>Approved write</td><td class="mono">g.murphy@ea</td><td class="mono">factsheet:write, seal:set</td></tr>
+          <tr><td>Inventory read</td><td class="mono">svc-fluid-ea-agents-ro</td><td class="mono">factsheet:read</td></tr>
+          <tr><td>Batch scoring</td><td class="mono">svc-fluid-ea-agents-batch</td><td class="mono">factsheet:read, survey:write</td></tr>
+        </table>
+      </div></div>
+      <div class="card"><header><h2>Trust boundary</h2><span class="info-ic" title="What runs inside the client's own perimeter versus what, if anything, is allowed to egress.">i</span></header><div class="body">
+        <div class="boundary">
+          <h4>Inside the client perimeter</h4>
+          <ul><li>Fluid EA Agents orchestration and all six agents</li><li>Model inference — internally deployed only</li><li>Run state and the audit store</li><li>Secrets and token exchange</li></ul>
+        </div>
+        <div class="note" style="margin-top:12px">Nothing egresses except calls to systems the client already operates. No fact sheet content is sent to any external service.</div>
+      </div></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Actor log</h2></header>
+      <table>
+        <tr><th>Actor</th><th>Type</th><th>Actions today</th><th>Last seen</th></tr>
+        <tr><td class="mono">g.murphy@ea</td><td><span class="tag t-human">human</span></td><td>7 approvals · 2 rejections</td><td class="mono">2 min ago</td></tr>
+        <tr><td class="mono">p.novak@product</td><td><span class="tag t-human">human</span></td><td>3 requests submitted</td><td class="mono">18 min ago</td></tr>
+        <tr><td class="mono">svc-fluid-ea-agents-ro</td><td><span class="tag t-rule">service</span></td><td>1,102 reads</td><td class="mono">now</td></tr>
+        <tr><td class="mono">svc-fluid-ea-agents-batch</td><td><span class="tag t-rule">service</span></td><td>1 batch run · 247 items</td><td class="mono">06:00</td></tr>
+      </table>
+    </section>
+  </div>
+
+  <!-- ===== INTEGRATIONS ===== -->
+  <div class="page" id="p-integrations">
+    <div class="eyebrow">Layer 3 · integration</div>
+    <h1>Integrations</h1>
+    <p class="lede">LeanIX is not one connection — it is six, each with its own auth scope, rate limit and failure mode. The external half carries the data that makes Fluid EA Agents defensible.</p>
+    <section class="card">
+      <header><h2>LeanIX interfaces</h2><span class="info-ic" title="Direct, typed connections to specific LeanIX APIs rather than one generic abstraction layer.">i</span><span class="tag t-ok">deep, not abstracted</span></header>
+      <table id="lxTbl"></table>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>External adapters</h2><span class="info-ic" title="Connections to systems outside LeanIX that supply data Fluid EA Agents can't get any other way.">i</span></header>
+      <table id="exTbl"></table>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <header><h2>Workspace schema</h2><span class="tag t-ok">discovered</span><span class="dim mono" style="margin-left:auto;font-size:10px">read at 06:00</span></header>
+      <div class="body">
+        <p style="font-size:13px;line-height:1.6">Field keys, subtypes and picklists differ between LeanIX customers. Fluid EA Agents reads the live meta model and fails loudly if a required field is missing.</p>
+        <table style="margin-top:12px">
+          <tr><th>Element</th><th>Found</th><th>Status</th></tr>
+          <tr><td>Application subtypes</td><td class="mono">business-application, deployment, microservice</td><td><span class="tag t-ok">ok</span></td></tr>
+          <tr><td>Capability tree</td><td class="mono">L1–L3 · 1,504 nodes</td><td><span class="tag t-ok">indexed</span></td></tr>
+          <tr><td>Fit fields</td><td class="mono">functionalSuitability, technicalSuitability</td><td><span class="tag t-ok">ok</span></td></tr>
+          <tr><td>Quality seal</td><td class="mono">qualitySeal — writable</td><td><span class="tag t-ok">ok</span></td></tr>
+          <tr><td>TEI scoring</td><td class="dim">not present</td><td><span class="tag t-wait">needs meta model change</span></td></tr>
+        </table>
+        <div class="note" style="margin-top:14px">TEI is a real dependency: the Total Economic Impact use case cannot write back until six scoring dimensions are added to this workspace's meta model.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== SOLUTION DESIGN ===== -->
+  <div class="page" id="p-solutiondesign">
+    <div class="eyebrow">Reference architecture</div>
+    <h1>Solution Design</h1>
+    <p class="lede">Five layers from experience surfaces down to systems of record — Layer 0 intake, Layer 1 orchestration, Layer 2 LeanIX-native agents, Layer 3 integration, Layer 4 systems of record. A cross-cutting column carries identity, audit, telemetry, evaluation and guardrails through every layer.</p>
+    <section class="card">
+      <header>
+        <h2>Fluid EA Agents Reference Architecture</h2>
+              </header>
+      <div class="body">
+        <div class="sd-legend">
+          <span class="sd-legend-item"><i class="sw sw-l0"></i>Layer 0 · Experience</span>
+          <span class="sd-legend-item"><i class="sw sw-l1"></i>Layer 1 · Orchestration</span>
+          <span class="sd-legend-item"><i class="sw sw-l2"></i>Layer 2 · Agents</span>
+          <span class="sd-legend-item"><i class="sw sw-l3"></i>Layer 3 · Integration</span>
+          <span class="sd-legend-item"><i class="sw sw-l4"></i>Layer 4 · Systems of record</span>
+          <span class="sd-legend-item"><i class="sw sw-cross"></i>Cross-cutting</span>
+          <span class="info-ic" title="Each layer is color-coded end to end: the dashed container, its boxes, and this legend swatch all share the same color per layer.">i</span>
+        </div>
+        <div class="sd-wrap">
+          <svg viewBox="0 0 680 656" xmlns="http://www.w3.org/2000/svg" role="img" font-family="system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+            <title>Fluid EA Agents LeanIX-native Reference Architecture</title>
+            <desc>Five layers from experience surfaces to systems of record, each in its own color. Integration splits into deep LeanIX interfaces and external data adapters. A cross-cutting band carries identity, audit, telemetry, evaluation and guardrails.</desc>
+            <defs>
+              <marker id="sd-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+            </defs>
+            <rect x="0" y="0" width="680" height="656" fill="#ffffff"/>
+
+            <rect x="40" y="40" width="460" height="90" rx="14" fill="none" stroke="#2563eb" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="52" y="60" font-size="11" font-weight="700" letter-spacing="0.4" fill="#2563eb">LAYER 0 — EXPERIENCE SURFACES</text>
+            <rect x="50.0" y="70" width="137.33333333333334" height="48" rx="8" fill="#eff4ff" stroke="#2563eb" stroke-width="1"/>
+            <text x="118.66666666666667" y="90.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">In-LeanIX review</text>
+            <text x="118.66666666666667" y="108.0" font-size="11.5" fill="#2563eb" text-anchor="middle">Primary surface</text>
+            <rect x="201.33333333333334" y="70" width="137.33333333333334" height="48" rx="8" fill="#eff4ff" stroke="#2563eb" stroke-width="1"/>
+            <text x="270.0" y="90.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Fluid EA Agents Chat</text>
+            <text x="270.0" y="108.0" font-size="11.5" fill="#2563eb" text-anchor="middle">Request intake</text>
+            <rect x="352.6666666666667" y="70" width="137.33333333333334" height="48" rx="8" fill="#eff4ff" stroke="#2563eb" stroke-width="1"/>
+            <text x="421.33333333333337" y="90.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Notifications</text>
+            <text x="421.33333333333337" y="108.0" font-size="11.5" fill="#2563eb" text-anchor="middle">Queue and SLA</text>
+            <line x1="270.0" y1="130" x2="270.0" y2="144" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#sd-arrow)"/>
+            <rect x="40" y="146" width="460" height="100" rx="14" fill="none" stroke="#4f46e5" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="52" y="166" font-size="11" font-weight="700" letter-spacing="0.4" fill="#4f46e5">LAYER 1 — ORCHESTRATION CORE</text>
+            <rect x="50.0" y="178" width="99.5" height="56" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1"/>
+            <text x="99.75" y="202.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Run manager</text>
+            <text x="99.75" y="220.0" font-size="11.5" fill="#4f46e5" text-anchor="middle">State, resume</text>
+            <rect x="163.5" y="178" width="99.5" height="56" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1"/>
+            <text x="213.25" y="202.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Planner</text>
+            <text x="213.25" y="220.0" font-size="11.5" fill="#4f46e5" text-anchor="middle">Branches</text>
+            <rect x="277.0" y="178" width="99.5" height="56" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1"/>
+            <text x="326.75" y="202.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Model router</text>
+            <text x="326.75" y="220.0" font-size="11.5" fill="#4f46e5" text-anchor="middle">Policy gate</text>
+            <rect x="390.5" y="178" width="99.5" height="56" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1"/>
+            <text x="440.25" y="202.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Tool broker</text>
+            <text x="440.25" y="220.0" font-size="11.5" fill="#4f46e5" text-anchor="middle">All egress</text>
+            <line x1="213.25" y1="246" x2="213.25" y2="260" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#sd-arrow)"/>
+            <rect x="40" y="262" width="460" height="142" rx="14" fill="none" stroke="#0284c7" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="52" y="282" font-size="11" font-weight="700" letter-spacing="0.4" fill="#0284c7">LAYER 2 — LEANIX-NATIVE AGENTS</text>
+            <rect x="50.0" y="294" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="118.66666666666667" y="321.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Intake / NLU</text>
+            <rect x="201.33333333333334" y="294" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="270.0" y="321.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Inventory</text>
+            <rect x="352.6666666666667" y="294" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="421.33333333333337" y="321.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Rationalization</text>
+            <rect x="50.0" y="346" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="118.66666666666667" y="373.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Survey</text>
+            <rect x="201.33333333333334" y="346" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="270.0" y="373.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Approval gate</text>
+            <rect x="352.6666666666667" y="346" width="137.33333333333334" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+            <text x="421.33333333333337" y="373.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">Provisioning</text>
+            <line x1="270.0" y1="404" x2="270.0" y2="418" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#sd-arrow)"/>
+            <rect x="40" y="420" width="460" height="90" rx="14" fill="none" stroke="#c2410c" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="52" y="440" font-size="11" font-weight="700" letter-spacing="0.4" fill="#c2410c">LAYER 3 — INTEGRATION</text>
+            <rect x="50.0" y="450" width="210.0" height="48" rx="8" fill="#fff1e8" stroke="#c2410c" stroke-width="1"/>
+            <text x="155.0" y="470.0" font-size="13.5" font-weight="600" fill="#0f172a" text-anchor="middle">LeanIX interfaces (deep)</text>
+            <text x="155.0" y="488.0" font-size="10.8" fill="#c2410c" text-anchor="middle">GraphQL · LDIF · survey · MCP · SDK</text>
+            <rect x="280.0" y="450" width="210.0" height="48" rx="8" fill="#fff1e8" stroke="#c2410c" stroke-width="1"/>
+            <text x="385.0" y="470.0" font-size="13.5" font-weight="600" fill="#0f172a" text-anchor="middle">External adapters</text>
+            <text x="385.0" y="488.0" font-size="10.8" fill="#c2410c" text-anchor="middle">SAM · IdP · GL · CMDB · ITSM</text>
+            <line x1="155.0" y1="510" x2="155.0" y2="524" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#sd-arrow)"/>
+            <line x1="385.0" y1="510" x2="385.0" y2="524" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#sd-arrow)"/>
+            <rect x="40" y="526" width="460" height="90" rx="14" fill="none" stroke="#475569" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="52" y="546" font-size="11" font-weight="700" letter-spacing="0.4" fill="#475569">LAYER 4 — SYSTEMS OF RECORD</text>
+            <rect x="50.0" y="556" width="210.0" height="48" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1"/>
+            <text x="155.0" y="576.0" font-size="13.5" font-weight="600" fill="#0f172a" text-anchor="middle">SAP LeanIX</text>
+            <text x="155.0" y="594.0" font-size="10.8" fill="#475569" text-anchor="middle">Sole EA system of record</text>
+            <rect x="280.0" y="556" width="210.0" height="48" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1"/>
+            <text x="385.0" y="576.0" font-size="13.5" font-weight="600" fill="#0f172a" text-anchor="middle">External data estate</text>
+            <text x="385.0" y="594.0" font-size="10.8" fill="#475569" text-anchor="middle">Cost, usage, tickets</text>
+            <rect x="520" y="146" width="120" height="470" rx="14" fill="none" stroke="#0d9488" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="532" y="166" font-size="11" font-weight="700" letter-spacing="0.4" fill="#0d9488">CROSS-CUTTING</text>
+            <rect x="530" y="178.0" width="100" height="44" rx="8" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/>
+            <text x="580.0" y="205.0" font-size="14" font-weight="600" fill="#0f766e" text-anchor="middle">Identity</text>
+            <rect x="530" y="273.0" width="100" height="44" rx="8" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/>
+            <text x="580.0" y="300.0" font-size="14" font-weight="600" fill="#0f766e" text-anchor="middle">Audit store</text>
+            <rect x="530" y="368.0" width="100" height="44" rx="8" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/>
+            <text x="580.0" y="395.0" font-size="14" font-weight="600" fill="#0f766e" text-anchor="middle">Telemetry</text>
+            <rect x="530" y="463.0" width="100" height="44" rx="8" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/>
+            <text x="580.0" y="490.0" font-size="14" font-weight="600" fill="#0f766e" text-anchor="middle">Evaluations</text>
+            <rect x="530" y="558.0" width="100" height="44" rx="8" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/>
+            <text x="580.0" y="585.0" font-size="14" font-weight="600" fill="#0f766e" text-anchor="middle">Guardrails</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+    <section class="note" style="margin-top:16px">Reference diagram for illustration — box placement mirrors the actual request path: intake surfaces hand off to the orchestration core, which calls the six LeanIX-native agents, which reach LeanIX and external systems through Layer 3, landing in the systems of record at Layer 4. Identity, audit, telemetry, evaluations and guardrails apply across every layer, not just one.</section>
+  </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+/* ==================== NAV ==================== */
+const PAGES=[
+ ['SEP','Workspace',''],
+ ['overview','Overview',''],['apprequest','Application Request',''],
+ ['SEP2','Agents & Approvals',''],
+ ['agents','Agents','6'],['approvals','Approvals','3'],
+ ['SEP3','Cross-cutting',''],
+ ['audit','Audit','0'],['telemetry','Telemetry',''],['evals','Evaluations','78%'],['guardrails','Guardrails','0'],['identity','Identity',''],
+ ['SEP4','Platform',''],
+ ['integrations','Integrations','11'],['solutiondesign','Solution Design','']];
+const NAV_ICONS={overview:'OV',apprequest:'AR',agents:'AG',approvals:'AP',audit:'AU',telemetry:'TL',evals:'EV',guardrails:'GR',identity:'ID',integrations:'IN',solutiondesign:'SD'};
+const nav=document.getElementById('nav');
+const toggleRow=document.createElement('div');toggleRow.className='nav-toggle-row';
+toggleRow.innerHTML=`<button class="nav-toggle" id="navToggleBtn" onclick="toggleNav()" title="Collapse sidebar">&#171;</button>`;
+nav.appendChild(toggleRow);
+PAGES.forEach(([id,label,ct])=>{
+  if(id.startsWith('SEP')){const h=document.createElement('h6');h.textContent=label;nav.appendChild(h);return;}
+  const b=document.createElement('button');b.id='n-'+id;b.onclick=()=>go(id);b.title=label;
+  b.innerHTML=`<span class="ic">${NAV_ICONS[id]||'--'}</span><span class="lbl">${label}</span>`+(ct?`<span class="dot-n" id="c-${id}">${ct}</span>`:'');
+  nav.appendChild(b);
+});
+function toggleNav(){
+  const collapsed=nav.classList.toggle('collapsed');
+  document.querySelector('.shell').classList.toggle('nav-collapsed',collapsed);
+  document.getElementById('navToggleBtn').innerHTML=collapsed?'&#187;':'&#171;';
+  document.getElementById('navToggleBtn').title=collapsed?'Expand sidebar':'Collapse sidebar';
+}
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  document.getElementById('n-'+id).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+go('overview');
+
+/* ==================== AGENTS GRID ==================== */
+const AGENTS=[
+ {n:'Intake / NLU',t:'auto',tl:'model',i:'free text',o:'structured attributes + certainty',d:'Output must be a valid fact sheet payload for the workspace\'s actual subtype and required-field set, discovered live from the meta model.'},
+ {n:'Inventory',t:'auto',tl:'model',i:'extracted attributes',o:'candidate fact sheets',d:'Uses LeanIX native semantic search via MCP as its retrieval tool instead of maintaining a private embedding index.'},
+ {n:'Rationalization',t:'rule',tl:'graph',i:'candidates + target',o:'overlap / successor / net-new',d:'Computed from the capability relation graph, functional and technical fit, cost fields, and interface relations. Not from description similarity alone.'},
+ {n:'Survey',t:'auto',tl:'model',i:'missing-field set',o:'issued survey, parsed response',d:'Fires only below 0.60 confidence. Collecting data beats guessing. Uses the native LeanIX survey API.'},
+ {n:'Approval gate',t:'human',tl:'human',i:'draft proposal',o:'persisted work item → decision',d:'Not an agent — a subsystem spanning the surface, the run manager and LeanIX. Sets the quality seal on approval.'},
+ {n:'Provisioning',t:'rule',tl:'rule',i:'approved fact sheet',o:'ticket + reference written back',d:'Runs after the LeanIX commit, never before. A ticket without a recorded application is worse than neither.'}];
+document.getElementById('agentGrid').innerHTML=AGENTS.map(a=>`
+ <div class="agent a-${a.t}"><h3>${a.n} <span class="tag t-${a.t}">${a.tl}</span></h3>
+ <div class="io"><b>in</b> &nbsp;${a.i}<br><b>out</b> ${a.o}</div>
+ <div class="desc">${a.d}</div></div>`).join('');
+
+/* ==================== TELEMETRY ==================== */
+document.getElementById('rlGrid').innerHTML=[
+ ['LX-1 GraphQL',68],['LX-2 Integration API',12],['LX-3 Survey API',4],
+ ['LX-5 MCP server',41],['SN-1 ServiceNow',22],['EX-2 Identity provider',87]
+].map(([n,v])=>`<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${n}</span><span class="mono dim">${v}%</span></div><div class="bar"><i class="${v>80?'hot':'tl'}" style="width:${v}%"></i></div></div>`).join('');
+document.getElementById('evGrid').innerHTML=[
+ ['Intake / NLU — attribute extraction',91],['Inventory — candidate recall',88],
+ ['Rationalization — overlap verdict',78],['Rationalization — fit scores',74],['Survey — field completion',95]
+].map(([n,v])=>`<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${n}</span><span class="mono dim">${v}%</span></div><div class="bar"><i class="${v<75?'hot':'tl'}" style="width:${v}%"></i></div></div>`).join('');
+
+/* ==================== INTEGRATIONS ==================== */
+document.getElementById('lxTbl').innerHTML='<tr><th>Ref</th><th>Interface</th><th>Purpose</th><th>Failure mode</th><th></th></tr>'+[
+ ['LX-1','GraphQL API','Fact sheet read/write, fit scores, quality seal','Partial mutation — compensation required','ok'],
+ ['LX-2','Integration API','Bulk sync of cost and CMDB data','Silent misconfiguration — validate first','ok'],
+ ['LX-3','Survey API','Collecting missing fields from owners','Owner never answers — timeout + escalate','ok'],
+ ['LX-4','Webhooks','Run resume on survey completion','Delivery not guaranteed — sweep as backstop','ok'],
+ ['LX-5','MCP server','Semantic search as agent tools','Stateless; not a write path','verify'],
+ ['LX-6','Reporting SDK','Embedded review surface in LeanIX','SDK version coupled to workspace','verify']
+].map(r=>`<tr><td class="mono">${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td class="dim" style="font-size:12px">${r[3]}</td><td><span class="tag ${r[4]==='ok'?'t-ok':'t-wait'}">${r[4]}</span></td></tr>`).join('');
+document.getElementById('exTbl').innerHTML='<tr><th>Ref</th><th>System</th><th>Carries</th><th>Access</th></tr>'+[
+ ['SN-1','ServiceNow — fulfilment','Provisioning tickets','simulated'],
+ ['SN-2','ServiceNow CMDB','Cross-validation','granted'],
+ ['EX-1','SAM platform','Entitlements, contracts, renewals','pending'],
+ ['EX-2','Identity provider','Active user counts','granted'],
+ ['EX-3','Finance / invoices','Cost documents','pending']
+].map(r=>`<tr><td class="mono">${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td><span class="tag ${r[3]==='granted'?'t-ok':r[3]==='pending'?'t-wait':'t-rule'}">${r[3]}</span></td></tr>`).join('');
+
+/* ==================== CROSS-CUTTING SIDE EFFECTS ==================== */
+let audit=[], guard=[], calls=1284;
+function bump(id,n){const e=document.getElementById(id);if(!e)return;e.textContent=(parseInt(e.textContent.replace(/\D/g,''))||0)+n;}
+function record(s,runLabel){
+  const rec={id:'dr-'+(9000+audit.length+1),run:runLabel||(arState.runId||'queue'),step:s.t,layer:s.l,kind:labelFor(s.k),
+    at:new Date().toLocaleTimeString('en-GB'),
+    body:`record        dr-${9000+audit.length+1}\nrun           ${runLabel||(arState.runId||'queue')}\nstep          ${s.t}\nlayer         ${s.l}\ndecided by    ${s.k==='human'?'g.murphy@ea':(s.k==='model'?'local-70b · intake-v12':'deterministic rule')}\n${s.k==='model'&&arState.scenario?'confidence    '+arState.scenario.conf+' (threshold applied)\n':''}retrieval     values captured at read time\nguardrails    ${s.t.includes('Personal')?'pii_detected':(s.t.includes('Survey resp')?'injection_quarantined':'none fired')}\nat            ${new Date().toISOString()}\nimmutable     true`};
+  audit.unshift(rec);drawAudit();
+  calls+=Math.floor(Math.random()*4)+1;
+  const tc=document.getElementById('t-calls');if(tc)tc.textContent=calls.toLocaleString();
+  if(s.k==='model'){const c=document.getElementById('t-cost');if(c)c.textContent='$'+(parseFloat(c.textContent.slice(1))+.04).toFixed(2);}
+  if(s.t.includes('Personal data'))addGuard('pii','Personal data in scope','PII detected — privacy task attached.');
+  if(s.t.includes('Survey resp'))addGuard('inj','Instruction text quarantined','Survey answer contained instruction-like content. Treated as data.');
+  if(s.t.includes('Survey issued'))addGuard('conf','Confidence routing','Score below 0.60. Survey issued instead of guessing.');
+  if(s.t.includes('Committed'))addGuard('scope','Write scope checked','Mutation confined to approved types and fields.');
+}
+function drawAudit(){
+  document.getElementById('auditTbl').innerHTML='<tr><th>Record</th><th>Step</th><th>Decided by</th><th>Time</th><th></th></tr>'+
+   (audit.length?audit.map(r=>`<tr><td class="mono">${r.id}</td><td>${r.step}</td><td><span class="tag ${tagFor(r.kind==='human'?'human':r.kind==='model'?'model':'rule')}">${r.kind}</span></td><td class="mono dim">${r.at}</td>
+    <td><button class="btn b sm" onclick="showRec('${r.id}')">Open</button></td></tr>`).join('')
+    :'<tr><td colspan="5" class="dim">No records yet. Start a run on Application Request.</td></tr>');
+  document.getElementById('auct').textContent=audit.length+' records';
+  const c=document.getElementById('c-audit');if(c)c.textContent=audit.length;
+}
+function showRec(id){
+  const r=audit.find(x=>x.id===id);if(!r)return;
+  document.getElementById('recCard').style.display='block';
+  document.getElementById('recId').textContent=r.id;
+  document.getElementById('recBody').textContent=r.body;
+  go('audit');
+  document.getElementById('recCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function addGuard(kind,ttl,txt){
+  const map={pii:['t-wait','pii'],inj:['t-bad','injection'],conf:['t-auto','confidence'],scope:['t-ok','scope']};
+  guard.unshift({kind,ttl,txt,tag:map[kind],at:new Date().toLocaleTimeString('en-GB')});
+  document.getElementById('grLog').innerHTML=guard.map(g=>
+   `<div class="ev"><div class="w"><span class="tag ${g.tag[0]}">${g.tag[1]}</span></div>
+    <div class="bd"><b>${g.ttl}</b><p>${g.txt}</p></div><div class="mono dim" style="font-size:11px">${g.at}</div></div>`).join('');
+  document.getElementById('grct').textContent=guard.length+' events';
+  const c=document.getElementById('c-guardrails');if(c)c.textContent=guard.length;
+  bump('s-guard',1);
+}
+function tagFor(k){return{model:'t-auto',rule:'t-rule',wait:'t-wait',human:'t-human',auto:'t-ok'}[k];}
+function labelFor(k){return{model:'model',rule:'rule',wait:'suspended',human:'human',auto:'system'}[k];}
+
+/* ==================== APPROVALS ==================== */
+let queue=[
+ {id:'wi-4471',app:'Cost What-If Analysis',cap:'Scenario Analysis',verd:'Draft ready — Dashboard updates for Q3 TCO/TEI scenario',conf:.88,sla:'2 days left',late:false,arLinked:false},
+ {id:'wi-4468',app:'Architecture Survey Automation',cap:'EA Management',verd:'Draft ready — Repository updates from owner survey',conf:.93,sla:'1 day left',late:false,arLinked:false},
+ {id:'wi-4462',app:'Automated Solution Review',cap:'Governance',verd:'Draft ready — Review report for payments solution',conf:.86,sla:'overdue',late:true,arLinked:false}];
+function drawQueue(){
+  document.getElementById('queueTbl').innerHTML='<tr><th>Item</th><th>Application</th><th>Proposal</th><th>Conf</th><th>SLA</th><th></th></tr>'+
+   (queue.length?queue.map(q=>`<tr><td class="mono">${q.id}</td><td><b>${q.app}</b><div class="dim" style="font-size:11px">${q.cap}</div></td>
+    <td style="font-size:13px">${q.verd}${q.arLinked?' <span class="tag t-auto" style="margin-left:6px">from application request</span>':''}</td><td class="mono">${q.conf}</td><td><span class="tag ${q.late?'t-bad':'t-wait'}">${q.sla}</span></td>
+    <td><button class="btn b sm" onclick="openAp('${q.id}')">Review</button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="dim">Queue clear.</td></tr>');
+  document.getElementById('qct').textContent=queue.length+' waiting';
+  const c=document.getElementById('c-approvals');if(c)c.textContent=queue.length;
+  document.getElementById('s-appr').textContent=queue.length;
+}
+function openAp(id){
+  const q=queue.find(x=>x.id===id);if(!q)return;
+  document.getElementById('apDetail').innerHTML=`
+   <div class="card ap-detail"><header><h2>${q.app}</h2><span class="tag t-wait">draft</span><span class="mono dim" style="margin-left:auto;font-size:11px">${q.id}</span></header>
+   <div class="body">
+     <div class="grid g2">
+       <div><h2 style="font-size:12px;margin-bottom:8px">Proposal</h2>
+        <p style="font-size:13px">${q.verd}</p>
+        <table style="margin-top:10px"><tr><td>Capability</td><td class="mono">${q.cap}</td></tr>
+        <tr><td>Lifecycle</td><td class="mono">Plan (proposed)</td></tr>
+        <tr><td>Confidence</td><td class="mono">${q.conf}</td></tr></table></div>
+       <div><h2 style="font-size:12px;margin-bottom:8px">Evidence used</h2>
+        <div class="evidence">capability relation   computed from graph
+fit delta             from LeanIX fields
+org-unit overlap      from organization relations
+shared interfaces     from interface relations
+composite             derived, components shown
+read at               values captured at read time</div>
+        <div class="note" style="margin-top:10px">Every line points at a real LeanIX field.</div></div>
+     </div>
+     ${q.arLinked?'<div class="note" style="margin-top:14px">This item is tied to a live run on <b>Application Request</b>. Deciding here will resume that run automatically.</div>':''}
+     <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">
+       <button class="btn g" onclick="decide('${q.id}','approved')">${q.gateType==='sync'?'Sync to LeanIX Inventory':'Approve and set quality seal'}</button>
+       <button class="btn o" onclick="decide('${q.id}','changes')">Request changes</button>
+       <button class="btn d" onclick="decide('${q.id}','rejected')">Reject</button>
+     </div>
+   </div></div>`;
+  document.getElementById('apDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function decide(id,action){
+  const q=queue.find(x=>x.id===id);if(!q)return;
+  queue=queue.filter(x=>x.id!==id);drawQueue();
+  audit.unshift({id:'dr-'+(9000+audit.length+1),run:'run-'+id.slice(3),step:'Architect '+action,layer:'L0 · in-LeanIX',kind:'human',
+   at:new Date().toLocaleTimeString('en-GB'),
+   body:`record        dr-${9000+audit.length+1}\nwork item     ${id}\napplication   ${q.app}\naction        ${action}\nreviewer      g.murphy@ea\nwritten as    ${action==='approved'?'g.murphy@ea (on-behalf-of)':'no write'}\nseal          ${action==='approved'?'set':'n/a'}\nat            ${new Date().toISOString()}\nimmutable     true`});
+  drawAudit();
+  if(action==='approved'){bump('s-comm',1);addGuard('scope','Write scope checked','Mutation confined to approved types.');}
+  const isSync = q.gateType==='sync';
+  document.getElementById('apDetail').innerHTML=`<div class="card"><div class="body"><b>${q.app} — ${action}.</b>
+   <p class="dim" style="font-size:13px;margin-top:4px">${action==='approved'
+     ?(isSync?'LeanIX inventory refreshed and a ServiceNow follow-up ticket opened.':'Draft approved. Decision record is now immutable.')
+     :(isSync?'Sync to LeanIX declined. Nothing further written for this run.':'Nothing written to LeanIX. Rejection reason captured as training signal.')}${q.arLinked?' The linked Application Request chat has been updated.':''}</p></div></div>`;
+  if(!q.arLinked) return;
+  const liveMatch = q.id===arState.queueId && q.convId===arState.convId;
+  if(liveMatch){
+    syncInlineApprovalCard(q.id,action);
+    const onArPage=document.getElementById('p-apprequest').classList.contains('on');
+    setTimeout(()=>{
+      if(!onArPage) go('apprequest');
+      resumeAfterGateDecision(q.gateType, action==='approved'?'approved':'rejected');
+    },onArPage?450:900);
+  } else {
+    const conv=conversations.find(c=>c.id===q.convId);
+    if(conv) resumeConversationInBackground(conv,q.gateType,action==='approved'?'approved':'rejected');
+  }
+}
+
+/* ==================== APPLICATION REQUEST: use-case data (from the EA use-case table) ==================== */
+const SCENARIOS=[
+ {key:'costwhatif',name:'Cost What-If Analysis',discipline:'Scenario Analysis',role:'Business Architect Agent',
+  req:'Can we get an AI-driven what-if cost scenario for TCO and TEI modeling across the portfolio?',
+  workflowSteps:['Scenario generation','Impact estimation','Uncertainty quantification','Auto-generated executive summaries'],
+  outputs:'Dashboard updates',dataRequired:'Applications, components, owners, contracts, costs, lifecycle status, other',conf:.89},
+ {key:'surveyauto',name:'Architecture Survey Automation',discipline:'EA Management',role:'Enterprise Architect Agent',
+  req:'Please automate the architecture survey to application owners and update the repository.',
+  workflowSteps:['Generate surveys','Collect responses','Update repository'],
+  outputs:'Repository updates',dataRequired:'Application owners, repository records, survey templates',conf:.91},
+ {key:'solutionreview',name:'Automated Solution Review',discipline:'Governance',role:'Governance Agent',
+  req:'Perform an automated first-pass architecture review of our new payments solution against standards.',
+  workflowSteps:['Analyze solution','Compare to standards','Generate findings'],
+  outputs:'Review report',dataRequired:'Solution designs, architecture standards, security controls',conf:.83},
+ {key:'diagramgen',name:'Architecture Diagram Generation',discipline:'Content',role:'Repository Agent',
+  req:'Generate updated architecture diagrams automatically for our application landscape.',
+  workflowSteps:['Parse sources','Generate diagrams','Validate','Publish'],
+  outputs:'Architecture diagrams',dataRequired:'Architecture descriptions, APIs, CMDB, repositories, code bases',conf:.9}
+];
+
+function buildAppSteps(sc){
+  const s=[
+   {t:'Request received',l:'L0 · Fluid EA Agents Chat',k:'auto',r:`actor: requester\nchannel: fluid-ea-agents-chat\npayload: "${sc.req}"`},
+   {t:'Identity resolved',l:'X · Identity',k:'auto',r:'actor: requester\nrole: '+sc.role+'\nscope: request:create'},
+   {t:'Plan selected',l:'L1 · Planner',k:'rule',r:'plan: '+sc.key+'-v1\nagent: '+sc.role+'\nsteps: '+(sc.workflowSteps.length+3)}
+  ];
+  sc.workflowSteps.forEach((title,i)=>{
+    s.push({t:title,l:'L2 · '+sc.role,k:'model',
+      r:`agent: ${sc.role}\ninput: ${i===0?sc.dataRequired:'output of "'+sc.workflowSteps[i-1]+'"'}\nconfidence: ${sc.conf}`});
+  });
+  s.push({t:'Draft assembled',l:'L2 · '+sc.role,k:'model',r:`output: ${sc.outputs}\nconfidence: ${sc.conf}`});
+  s.push({t:'Queued for approval',l:'L1 · Approval gate',k:'wait',r:'assignee: g.murphy@ea (Responsible role)\nSLA: 2 business days\nrun state written',seal:true,gate:'approval'});
+  return s;
+}
+function buildPostApprovalSteps(sc){
+  return [
+   {t:'Architect approved',l:'L0 · in-LeanIX',k:'human',r:'reviewer: g.murphy@ea\naction: approved\ncomment: "Agree — proceed"'},
+   {t:'Output validated',l:'L1 / L3',k:'rule',r:'schema check passed\nsafe to persist'},
+   {t:sc.outputs+' committed',l:'L3 · LX-1',k:'auto',r:`output: ${sc.outputs}\nwritten as g.murphy@ea (on-behalf-of)`},
+   {t:'Queued for LeanIX sync',l:'L1 · Approval gate',k:'wait',r:'assignee: g.murphy@ea (Responsible role)\naction: sync output to LeanIX + open provisioning ticket\nrun state written',seal:true,gate:'sync'},
+   {t:'Run closed',l:'L1 · Run manager',k:'rule',r:'state: COMMITTED\ndecision records: immutable',stamp:true}
+  ];
+}
+function buildRejectedSteps(){
+  return [{t:'Rejected — nothing written',l:'L1 · Approval gate',k:'human',r:'state: CLOSED\nrejection reason captured',rej:true}];
+}
+function buildSyncRejectedStep(){
+  return [{t:'Sync declined — nothing further written',l:'L1 · Approval gate',k:'human',r:'state: CLOSED\ncore output remains committed; sync declined',rej:true}];
+}
+
+/* ==================== LIVE WORKFLOW: generated 1:1 from the run trace ====================
+   Node i in the SVG always corresponds to arState.steps[i], so the workflow and the
+   trace panel advance in lockstep — no separate path data to keep in sync by hand. */
+function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function wrapLabel(text,maxChars){
+  const words=String(text).split(' '); const lines=[]; let cur='';
+  words.forEach(w=>{
+    const test=cur?cur+' '+w:w;
+    if(test.length>maxChars && cur){ lines.push(cur); cur=w; } else cur=test;
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+function colorForKind(k){ return {model:'#2563eb',rule:'#64748b',human:'#6d28d9',wait:'#d97706',auto:'#0d9488'}[k]||'#64748b'; }
+
+function renderWorkflowStructure(){
+  const steps=arState.steps;
+  const W=620, cx=W/2, nodeW=574;
+  const padV=10, titleLH=17, subLH=13, gapTS=4, vGap=22, topMargin=12, botMargin=12;
+  let y=topMargin, nodesHtml='', edgesHtml='';
+  const centers=[];
+  steps.forEach((s,i)=>{
+    const lines=wrapLabel(s.t,46);
+    const h=padV*2+lines.length*titleLH+gapTS+subLH;
+    const top=y, bottom=y+h;
+    centers.push({top,bottom});
+    const cls='wf-node'+(s.seal?' gate':'')+(s.rej?' rej':'');
+    const titleTop=top+padV+titleLH*0.72;
+    const titleSvg=lines.map((ln,li)=>`<text class="wf-text" x="${cx}" y="${titleTop+li*titleLH}">${escapeHtml(ln)}</text>`).join('');
+    const subY=top+padV+lines.length*titleLH+gapTS+subLH*0.75;
+    nodesHtml+=`<g id="wfnode-${i}" class="${cls}">
+      <rect class="wf-shape" x="${cx-nodeW/2}" y="${top}" width="${nodeW}" height="${h}" rx="12"/>
+      <rect class="wf-accent" x="${cx-nodeW/2}" y="${top+8}" width="5" height="${h-16}" rx="2.5" fill="${colorForKind(s.k)}"/>
+      ${titleSvg}
+      <text class="wf-sub" x="${cx}" y="${subY}">${escapeHtml(s.l)}</text>
+      <g class="wf-check-badge"><circle class="wf-check-circle" cx="${cx+nodeW/2-16}" cy="${top+16}" r="10"/><path class="wf-check-mark" d="M${cx+nodeW/2-21},${top+16} l3.5,3.5 l7,-7.5"/></g>
+    </g>`;
+    if(i>0) edgesHtml+=`<line id="wfedge-${i-1}" class="wf-edge" x1="${cx}" y1="${centers[i-1].bottom}" x2="${cx}" y2="${top}"/>`;
+    y=bottom+vGap;
+  });
+  const totalH=Math.max(160, y-vGap+botMargin);
+  const svg=document.getElementById('wfSvg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${totalH}`);
+  document.getElementById('wfBgRect').setAttribute('height',totalH);
+  document.getElementById('wfDotRect').setAttribute('height',totalH);
+  document.getElementById('wfNodes').innerHTML=nodesHtml;
+  document.getElementById('wfEdges').innerHTML=edgesHtml;
+}
+function syncWorkflowVisual(){
+  const steps=arState.steps;
+  steps.forEach((s,i)=>{
+    const el=document.getElementById('wfnode-'+i); if(!el) return;
+    el.classList.remove('active','done');
+    if(i<arState.idx) el.classList.add('done');
+    else if(i===arState.idx && arState.running) el.classList.add('active');
+  });
+  for(let j=0;j<steps.length-1;j++){
+    const e=document.getElementById('wfedge-'+j); if(!e) continue;
+    e.classList.toggle('done', j<arState.idx);
+  }
+  const lastDoneEdge=arState.idx-1;
+  if(lastDoneEdge>=0){
+    const e=document.getElementById('wfedge-'+lastDoneEdge);
+    if(e){ e.classList.add('flowing'); setTimeout(()=>e.classList.remove('flowing'),550); }
+  }
+  const activeNode=document.getElementById('wfnode-'+arState.idx);
+  if(activeNode && arState.running) activeNode.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ==================== DATA FLOW VIEW: reads → agent → writes, plus the per-step payload chain ==================== */
+function renderDataFlow(){
+  const wrap=document.getElementById('dataflowWrap'); if(!wrap) return;
+  if(!arState.scenario){ wrap.innerHTML='<p class="dim" style="padding-left:0">No run yet. Send a request in the chat or pick a templatised use case.</p>'; return; }
+  const sc=arState.scenario;
+  const rows=arState.steps.map((s,i)=>{
+    const st = i<arState.idx?'done':(i===arState.idx&&arState.running?'active':'pending');
+    return `<div class="df-node ${st}">
+      <div class="df-node-t">${escapeHtml(s.t)}</div>
+      <div class="df-node-l">${escapeHtml(s.l)}</div>
+      ${(st!=='pending'&&s.r)?`<div class="df-node-r">${escapeHtml(s.r)}</div>`:''}
+    </div>`;
+  }).join('<div class="df-connector"></div>');
+  wrap.innerHTML=`<div class="df-summary">
+     <div class="df-box df-in"><div class="df-lbl">Reads</div><div class="df-val">${escapeHtml(sc.dataRequired)}</div></div>
+     <div class="df-arrow">→</div>
+     <div class="df-box df-proc"><div class="df-lbl">Agent</div><div class="df-val">${escapeHtml(sc.role)}</div></div>
+     <div class="df-arrow">→</div>
+     <div class="df-box df-out"><div class="df-lbl">Writes</div><div class="df-val">${escapeHtml(sc.outputs)}</div></div>
+   </div>
+   <div class="df-chain">${rows}</div>`;
+}
+
+/* ==================== DETAIL PANEL TABS ==================== */
+function switchDetailTab(tab){
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  document.querySelectorAll('.detail-view').forEach(v=>v.classList.toggle('on', v.id==='view-'+tab));
+}
+
+/* ==================== LeanIX INVENTORY + SERVICENOW (ported from file-1) ==================== */
+let inventory=[
+ {name:"Salesforce CRM",cap:"Customer Relationship Mgmt",life:"active",owner:"J. Alvarez"},
+ {name:"SAP S/4HANA",cap:"Finance & ERP",life:"active",owner:"M. Chen"},
+ {name:"Mural",cap:"Visual Collaboration",life:"active",owner:"P. Novak"},
+ {name:"Teradata DW",cap:"Data Warehousing",life:"eol",owner:"R. Singh"},
+ {name:"Workday",cap:"Human Capital Mgmt",life:"active",owner:"L. Osei"},
+ {name:"Jira",cap:"Work Management",life:"active",owner:"P. Novak"},
+ {name:"Freshdesk",cap:"Customer Support",life:"phaseout",owner:"D. Laurent"},
+ {name:"Confluence",cap:"Knowledge Management",life:"active",owner:"P. Novak"},
+ {name:"Tableau",cap:"Business Intelligence",life:"active",owner:"R. Singh"},
+ {name:"Okta",cap:"Identity & Access Mgmt",life:"active",owner:"S. Kim"}
+];
+const lifeLabel={active:['Active','active'],eol:['End of Life','eol'],phaseout:['Phase Out','phaseout'],plan:['Plan','plan']};
+function renderInventoryTable(){
+  document.getElementById('invBody').innerHTML=inventory.map(a=>{
+    const [label,cls]=lifeLabel[a.life];
+    return `<tr><td><b>${a.name}</b></td><td>${a.cap}</td><td><span class="lc ${cls}">${label}</span></td><td>${a.owner}</td></tr>`;
+  }).join('');
+  document.getElementById('invCount').textContent=inventory.length+' fact sheets';
+}
+function revealInventory(sc){
+  renderInventoryTable();
+  document.getElementById('syncBanner').innerHTML=`<b>✓ System of record refreshed.</b> <b>${sc.outputs}</b> synced to LeanIX with a full audit trail linking the AI draft and the architect's approval.`;
+  document.getElementById('invCard').style.display='block';
+  document.getElementById('invCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  addBotMsg(`✓ LeanIX inventory refreshed — <b>${sc.outputs}</b> synced with the full audit trail linking this draft to the architect's approval.`,300);
+}
+function revealServiceNow(sc){
+  const ticketNum='REQ00'+(10000+Math.floor(Math.random()*9000));
+  document.getElementById('snId').textContent=ticketNum;
+  document.getElementById('snShort').textContent='Follow-up: '+sc.outputs;
+  document.getElementById('snApp').textContent=sc.outputs;
+  document.getElementById('snGroup').textContent=sc.role;
+  document.getElementById('snOwner').textContent='g.murphy@ea';
+  document.getElementById('snStatusTag').textContent='Open';
+  document.getElementById('snStatusTag').className='fstag draft';
+  document.getElementById('snBanner').style.display='none';
+  ['snT1','snT2','snT3','snT4'].forEach((id,idx)=>{
+    const li=document.getElementById(id);
+    li.classList.remove('active','done');
+    li.querySelector('.ic').innerHTML=idx===0?'<span class="spinner"></span>':'○';
+  });
+  document.getElementById('snowCard').style.display='block';
+  document.getElementById('snowCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  const stages=['snT1','snT2','snT3','snT4']; let i=0;
+  function nextStage(){
+    if(i>0){ const prev=document.getElementById(stages[i-1]); prev.classList.remove('active'); prev.classList.add('done'); prev.querySelector('.ic').innerHTML='✅'; }
+    if(i>=stages.length){
+      document.getElementById('snStatusTag').textContent='Resolved';
+      document.getElementById('snStatusTag').className='fstag approved';
+      const sb=document.getElementById('snBanner');
+      sb.innerHTML=`<b>✓ Follow-up complete.</b> Ticket <b>${ticketNum}</b> resolved in (simulated) ServiceNow, with the reference written back to the run's audit record.`;
+      sb.style.display='block';
+      setAppStep(6);
+      setRunMeta(arState.runId+' · complete');
+      addBotMsg(`✓ Follow-up ticket <b>${ticketNum}</b> resolved in (simulated) ServiceNow. This request is fully complete.`,200);
+      return;
+    }
+    const cur=document.getElementById(stages[i]);
+    cur.classList.add('active'); cur.querySelector('.ic').innerHTML='<span class="spinner"></span>';
+    i++; setTimeout(nextStage,1000);
+  }
+  nextStage();
+}
+
+/* ==================== RUN TRACE + STEPPER STATE ==================== */
+function defaultArState(convId){
+  return {phase:'idle',scenario:null,steps:[],idx:0,runId:'',running:false,queueId:null,convId,stepN:1,stepRejected:false,runMetaText:''};
+}
+let arState=defaultArState(null);
+function isBusy(){ return arState.running || ['awaiting-approval','awaiting-sync','proposing'].includes(arState.phase); }
+function setRunMeta(text){ arState.runMetaText=text; const el=document.getElementById('arRunMeta'); if(el) el.textContent=text; }
+
+function setAppStep(n,rejected){
+  arState.stepN=n; arState.stepRejected=!!rejected;
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('step'+i);
+    el.classList.toggle('active', i===n && !rejected);
+    el.classList.toggle('done', i<n);
+    el.classList.toggle('rej', rejected && i===n);
+  }
+  for(let i=1;i<=4;i++){ document.getElementById('conn'+i).classList.toggle('done', i<n); }
+}
+
+function renderArTrace(){
+  const box=document.getElementById('arTrace');
+  if(!arState.steps.length){ box.innerHTML='<p class="dim" style="padding-left:0">No run yet. Send a request in the chat or pick a templatised use case.</p>'; return; }
+  box.innerHTML=arState.steps.map((s,i)=>{
+    const st = i<arState.idx?'done':(i===arState.idx&&arState.running?'act':'pend');
+    let x='';
+    if(i<arState.idx||(i===arState.idx&&arState.running)){
+      if(s.r) x+=`<div class="rec">${s.r}</div>`;
+      if(s.seal && i===arState.idx && arState.running) x+=`<div class="seal"><div class="st">${s.gate==='sync'?'Run suspended — awaiting LeanIX sync approval':'Run suspended — awaiting architect'}</div><p>Queued for <b>g.murphy@ea</b>. Resolve it from the approval card in the chat, or from the <b>Approvals</b> queue.</p></div>`;
+      if(s.stamp) x+=`<div class="stamp"><div class="st">Committed · sealed · attributed</div><dl>
+        <dt>run</dt><dd>${arState.runId}</dd><dt>approved by</dt><dd>g.murphy@ea</dd>
+        <dt>written as</dt><dd>g.murphy@ea (on-behalf-of)</dd><dt>records</dt><dd>${audit.length} · immutable</dd></dl></div>`;
+      if(s.rej) x+=`<div class="rejbox"><div class="st">Nothing written</div><p>Rejection reason captured as a training signal.</p></div>`;
+    }
+    return `<div class="step-item ${st} ${s.seal?'brk':''}"><div class="dot">${i+1}</div>
+      <div class="hd"><span class="ttl">${s.t}</span><span class="tag ${tagFor(s.k)}">${labelFor(s.k)}</span></div>
+      <div class="meta">${s.l}</div>${x}</div>`;
+  }).join('');
+  const activeEl=box.querySelector('.step-item.act');
+  if(activeEl) activeEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderPipelineCard(){
+  const el=document.getElementById('pipelineList'); if(!el) return;
+  el.innerHTML=arState.steps.map((s,i)=>{
+    const st = i<arState.idx?'done':(i===arState.idx&&arState.running?'active':'pending');
+    const icon = st==='done'?'✓':(st==='active'?'<span class="spinner"></span>':'○');
+    return `<div class="pl-row ${st}"><span class="pl-ic">${icon}</span><span class="pl-t">${escapeHtml(s.t)}</span><span class="tag ${tagFor(s.k)}" style="margin-left:auto">${labelFor(s.k)}</span></div>`;
+  }).join('');
+}
+function addPipelineCardMsg(){
+  const d=document.createElement('div'); d.className='msg b';
+  d.innerHTML=`<div class="who">fluid</div><div class="bub"><div class="dim" style="font-size:10.5px;margin-bottom:7px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Pipeline</div><div class="pipeline-card" id="pipelineList"></div></div>`;
+  thread.appendChild(d); thread.scrollTop=thread.scrollHeight;
+  renderPipelineCard();
+}
+
+function advanceAr(){
+  renderArTrace(); syncWorkflowVisual(); renderDataFlow(); renderPipelineCard();
+  const s=arState.steps[arState.idx];
+  if(s.seal){
+    arState.running=false; renderArTrace(); syncWorkflowVisual(); renderPipelineCard();
+    if(s.gate==='sync') onArSyncGate(); else onArApprovalGate();
+    return;
+  }
+  record(s,arState.runId); arState.idx++;
+  if(arState.idx>=arState.steps.length){
+    arState.running=false; renderArTrace(); syncWorkflowVisual(); renderDataFlow(); renderPipelineCard();
+    if(arState.phase==='rejected'){
+      setAppStep(3,true);
+      setRunMeta(arState.runId+' · closed · rejected');
+      return;
+    }
+    if(arState.phase==='sync-rejected'){
+      setAppStep(4,true);
+      setRunMeta(arState.runId+' · closed · sync declined');
+      return;
+    }
+    setRunMeta(arState.runId+' · complete');
+    return;
+  }
+  setTimeout(advanceAr, s.delay||700);
+}
+
+function renderInlineApprovalCard(q){
+  const d=document.createElement('div'); d.className='msg b';
+  d.innerHTML=`<div class="who">fluid</div><div class="bub">
+    <div class="inline-approval" id="inlineAp-${q.id}">
+      <div class="ia-head"><span class="tag t-wait">awaiting architect</span><span class="mono dim" style="font-size:11px;margin-left:auto">${q.id}</span></div>
+      <p style="font-size:13px;margin-top:8px">${escapeHtml(q.verd)}</p>
+      <div class="evidence" style="margin-top:8px">confidence   ${q.conf}
+capability   ${escapeHtml(q.cap)}
+assignee     g.murphy@ea</div>
+      <div class="ia-actions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn g sm" onclick="decide('${q.id}','approved')">${q.gateType==='sync'?'Sync to LeanIX':'Approve &amp; set seal'}</button>
+        <button class="btn o sm" onclick="decide('${q.id}','changes')">Request changes</button>
+        <button class="btn d sm" onclick="decide('${q.id}','rejected')">Reject</button>
+      </div>
+    </div>
+  </div>`;
+  thread.appendChild(d); thread.scrollTop=thread.scrollHeight;
+}
+function syncInlineApprovalCard(qid,action){
+  const el=document.getElementById('inlineAp-'+qid); if(!el) return;
+  const map={approved:['t-ok','✅ Approved'],rejected:['t-bad','✖ Rejected'],changes:['t-wait','✎ Changes requested']};
+  const [cls,label]=map[action]||['t-rule',action];
+  const head=el.querySelector('.ia-head'); if(head) head.innerHTML=`<span class="tag ${cls}">${label}</span><span class="mono dim" style="font-size:11px;margin-left:auto">by g.murphy@ea</span>`;
+  const actions=el.querySelector('.ia-actions'); if(actions) actions.remove();
+}
+
+function onArApprovalGate(){
+  const sc=arState.scenario;
+  const qid='wi-'+Math.floor(Math.random()*9000+1000);
+  queue.unshift({id:qid,app:sc.name,cap:sc.discipline,verd:'Draft ready — '+sc.outputs,conf:sc.conf,sla:'2 days',late:false,arLinked:true,gateType:'approval',convId:arState.convId});
+  arState.queueId=qid; arState.phase='awaiting-approval';
+  drawQueue();
+  setAppStep(3);
+  addBotMsg('The draft is ready. It needs an architect sign-off before it can move forward — this is mirrored in the <b>Approvals</b> queue, but you can decide right here:',400)
+    .then(()=>renderInlineApprovalCard(queue.find(x=>x.id===qid)));
+  setRunMeta(arState.runId+' · suspended · awaiting architect');
+}
+function onArSyncGate(){
+  const sc=arState.scenario;
+  const qid='wi-'+Math.floor(Math.random()*9000+1000);
+  queue.unshift({id:qid,app:sc.name,cap:sc.discipline,verd:'Sync to LeanIX — publish '+sc.outputs.toLowerCase()+' and open a follow-up ticket',conf:sc.conf,sla:'same day',late:false,arLinked:true,gateType:'sync',convId:arState.convId});
+  arState.queueId=qid; arState.phase='awaiting-sync';
+  drawQueue();
+  setAppStep(4);
+  addBotMsg('Committed and ready to sync. A second architect sign-off will publish this to LeanIX and open the follow-up ticket:',400)
+    .then(()=>renderInlineApprovalCard(queue.find(x=>x.id===qid)));
+  setRunMeta(arState.runId+' · suspended · awaiting sync approval');
+}
+function resumeAfterGateDecision(gateType,action){
+  /* advanceAr() paused on the gate step without incrementing idx — record it
+     and step past it before resuming, otherwise advanceAr() re-evaluates the
+     same gate step and re-triggers the gate handler in a loop. */
+  const gateStep=arState.steps[arState.idx];
+  if(gateStep) record(gateStep, arState.runId);
+  arState.idx++;
+  const sc=arState.scenario;
+  arState.running=true;
+  if(gateType==='approval'){
+    if(action==='approved'){
+      arState.phase='resumed';
+      arState.steps=arState.steps.concat(buildPostApprovalSteps(sc));
+      renderWorkflowStructure();
+      setAppStep(3);
+      addBotMsg('Approved — resuming the run.',300);
+      setRunMeta(arState.runId+' · resumed · approved');
+    } else {
+      arState.phase='rejected';
+      arState.steps=arState.steps.concat(buildRejectedSteps());
+      renderWorkflowStructure();
+      setAppStep(3,true);
+      addBotMsg('Rejected — nothing written to LeanIX. Closing this run.',300);
+      setRunMeta(arState.runId+' · closed · rejected');
+    }
+    renderPipelineCard();
+    advanceAr();
+  } else { // sync gate — the pre-final step, right before "Run closed"
+    if(action==='approved'){
+      arState.phase='synced';
+      setAppStep(4);
+      addBotMsg('Synced — publishing to LeanIX and opening the follow-up ticket.',300);
+      setRunMeta(arState.runId+' · synced · finalizing');
+      renderPipelineCard();
+      advanceAr(); // proceeds straight to the final "Run closed" step
+      revealInventory(sc);
+      setTimeout(()=>{ setAppStep(5); revealServiceNow(sc); },1200);
+    } else {
+      arState.phase='sync-rejected';
+      arState.steps=arState.steps.concat(buildSyncRejectedStep());
+      renderWorkflowStructure();
+      setAppStep(4,true);
+      addBotMsg('Sync declined — the core output stays committed but nothing further is written.',300);
+      setRunMeta(arState.runId+' · closed · sync declined');
+      renderPipelineCard();
+      advanceAr();
+    }
+  }
+}
+function resumeConversationInBackground(conv,gateType,action){
+  const sc=conv.arState.scenario; if(!sc) return;
+  conv.arState.idx++;
+  if(gateType==='approval'){
+    conv.arState.phase = action==='approved'?'resumed':'rejected';
+    conv.arState.steps = conv.arState.steps.concat(action==='approved'?buildPostApprovalSteps(sc):buildRejectedSteps());
+  } else {
+    conv.arState.phase = action==='approved'?'synced':'sync-rejected';
+    if(action!=='approved') conv.arState.steps = conv.arState.steps.concat(buildSyncRejectedStep());
+  }
+  conv.arState.idx = conv.arState.steps.length;
+  conv.arState.running=false;
+  conv.arState.stepN = gateType==='approval'?3:(gateType==='sync'?5:4);
+  conv.arState.stepRejected = action!=='approved';
+  conv.html += `<div class="msg b"><div class="who">fluid</div><div class="bub"><span class="tag ${action==='approved'?'t-ok':'t-bad'}">${action}</span> — decided by <b>g.murphy@ea</b> from the Approvals queue while this chat was in the background. ${gateType==='sync'?(action==='approved'?'Synced to LeanIX.':'Sync declined; core output stays committed.'):(action==='approved'?'Run resumed and completed.':'Run closed — nothing written.')}</div></div>`;
+}
+
+/* ==================== CONVERSATIONS (chat history sidebar) ==================== */
+let conversations=[];
+let activeConvId=null;
+
+function newConversation(){
+  if(isBusy()){ addBotMsg('Finish or resolve the pending step in this chat first, then start a new one.',300); return; }
+  if(activeConvId!==null) saveActiveConversation();
+  const id='c-'+Math.random().toString(36).slice(2,9);
+  conversations.unshift({id,title:'New chat',createdAt:new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),html:'',arState:defaultArState(id),started:false,detailTab:'workflow'});
+  activeConvId=id;
+  loadConversationIntoView(conversations[0]);
+  renderConvoList();
+}
+function saveActiveConversation(){
+  const conv=conversations.find(c=>c.id===activeConvId); if(!conv) return;
+  conv.html=document.getElementById('thread').innerHTML;
+  conv.arState=JSON.parse(JSON.stringify(arState));
+  conv.started=arState.phase!=='idle';
+  const onTab=document.querySelector('.dtab.on');
+  conv.detailTab=onTab?onTab.dataset.tab:'workflow';
+}
+function switchConversation(id){
+  if(id===activeConvId) return;
+  if(isBusy()){ addBotMsg('Finish or resolve the pending step in this chat before switching — the run is still advancing.',300); return; }
+  saveActiveConversation();
+  const conv=conversations.find(c=>c.id===id); if(!conv) return;
+  activeConvId=id;
+  loadConversationIntoView(conv);
+  renderConvoList();
+}
+function loadConversationIntoView(conv){
+  arState=JSON.parse(JSON.stringify(conv.arState));
+  document.getElementById('thread').innerHTML=conv.html;
+  thread.scrollTop=thread.scrollHeight;
+  const started=conv.started && arState.phase!=='idle';
+  document.getElementById('arBanner').style.display=started?'flex':'none';
+  document.getElementById('detailCol').style.display=started?'block':'none';
+  document.getElementById('chatLayout').classList.toggle('run-active',started);
+  document.getElementById('invCard').style.display='none';
+  document.getElementById('snowCard').style.display='none';
+  if(started){
+    setAppStep(arState.stepN||1, arState.stepRejected);
+    renderWorkflowStructure(); syncWorkflowVisual();
+    renderDataFlow();
+    renderArTrace();
+    renderPipelineCard();
+    switchDetailTab(conv.detailTab||'workflow');
+    const el=document.getElementById('arRunMeta'); if(el) el.textContent=arState.runMetaText||'';
+  } else {
+    document.getElementById('wfNodes').innerHTML=''; document.getElementById('wfEdges').innerHTML='';
+    setAppStep(1);
+  }
+}
+function renderConvoList(){
+  const box=document.getElementById('convoList');
+  if(!conversations.length){ box.innerHTML='<div class="convo-empty">No conversations yet.</div>'; return; }
+  box.innerHTML=conversations.map(c=>`<button class="convo-item ${c.id===activeConvId?'on':''}" onclick="switchConversation('${c.id}')">
+    <span class="ct">${escapeHtml(c.title)}</span>
+    <span class="cm"><span>${c.started&&c.arState.scenario?escapeHtml(c.arState.scenario.discipline):'—'}</span><span>${c.createdAt}</span></span>
+  </button>`).join('');
+}
+function updateConvTitleFromFirstMessage(text){
+  const conv=conversations.find(c=>c.id===activeConvId); if(!conv||conv.title!=='New chat') return;
+  conv.title = text.length>42 ? text.slice(0,42)+'…' : text;
+  renderConvoList();
+}
+
+/* ==================== CHAT ENGINE ==================== */
+function detectScenario(text){
+  const t=text.toLowerCase();
+  if(t.includes('what-if')||t.includes('what if')||t.includes('tco')||t.includes('tei')||t.includes('cost scenario')||t.includes('cost analysis')||t.includes('cost model')) return SCENARIOS[0];
+  if(t.includes('survey')) return SCENARIOS[1];
+  if(t.includes('review')||t.includes('governance')||t.includes('standards')) return SCENARIOS[2];
+  if(t.includes('diagram')) return SCENARIOS[3];
+  return null;
+}
+
+const thread=document.getElementById('thread');
+function addMsg(who,html,cls){
+  const d=document.createElement('div'); d.className='msg '+(cls||'');
+  d.innerHTML=`<div class="who">${who}</div><div class="bub">${html}</div>`;
+  thread.appendChild(d); thread.scrollTop=thread.scrollHeight;
+  return d;
+}
+function addBotMsg(html,delay){
+  return new Promise(r=>{setTimeout(()=>{addMsg('fluid','<div style="display:flex;gap:6px;align-items:center"><span style="width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,var(--teal),#2dd4bf);display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:8px;height:8px;fill:#fff"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span></div> '+html,'b');r();},delay);});
+}
+function addThinkingMsg(text,ms){
+  return new Promise(resolve=>{
+    const d=document.createElement('div'); d.className='msg b';
+    d.innerHTML=`<div class="who">fluid</div><div class="bub"><details class="think"><summary>Thinking…</summary><div class="think-body"></div></details></div>`;
+    thread.appendChild(d); thread.scrollTop=thread.scrollHeight;
+    const summary=d.querySelector('summary'), body=d.querySelector('.think-body');
+    setTimeout(()=>{
+      summary.textContent='Thought for '+(ms/1000).toFixed(1)+'s';
+      body.textContent=text;
+      thread.scrollTop=thread.scrollHeight;
+      resolve();
+    },ms);
+  });
+}
+function renderSuggestionChipsHtml(){
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">`+
+    SCENARIOS.map(s=>`<button class="btn o sm" onclick="pickSuggestion('${s.key}')">${escapeHtml(s.name)}</button>`).join('')+
+    `</div>`;
+}
+function pickSuggestion(key){
+  const sc=SCENARIOS.find(s=>s.key===key); if(!sc) return;
+  if(isBusy()){ addBotMsg('This chat already has a run in progress — start a <b>New chat</b> from the sidebar to try another use case in parallel.',300); return; }
+  addMsg('you',sc.req,'u');
+  updateConvTitleFromFirstMessage(sc.name);
+  proposeScenario(sc);
+}
+async function proposeScenario(sc){
+  arState.phase='proposing';
+  const totalSteps=sc.workflowSteps.length+5;
+  await addThinkingMsg(`Matching request against known templates… matched "${sc.name}" (${sc.discipline}) with confidence ${sc.conf}. Selecting the ${sc.role}. Planning ${totalSteps} steps: identity resolution → plan selection → ${sc.workflowSteps.join(' → ')} → draft assembly → architect approval.`,1100+Math.floor(Math.random()*400));
+  await addBotMsg(`Here's my plan for <b>${sc.name}</b>:
+    <ol style="margin:8px 0 0 18px;padding:0;font-size:12.5px;line-height:1.75">
+      <li>Resolve requester identity &amp; role</li>
+      ${sc.workflowSteps.map(w=>`<li>${escapeHtml(w)}</li>`).join('')}
+      <li>Assemble draft output — ${escapeHtml(sc.outputs)}</li>
+      <li>Route to <b>g.murphy@ea</b> for approval, right here in this chat</li>
+    </ol>
+    <div class="plan-actions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn g sm" onclick="confirmPlan(this,true,'${sc.key}')">▶ Run this plan</button>
+      <button class="btn o sm" onclick="confirmPlan(this,false,'${sc.key}')">✏️ Let me rephrase</button>
+    </div>`,500);
+}
+function confirmPlan(btnEl,yes,key){
+  const row=btnEl.closest('.plan-actions');
+  if(row) row.outerHTML = yes
+    ? '<div class="dim" style="font-size:12px;margin-top:10px">▶ Running…</div>'
+    : '<div class="dim" style="font-size:12px;margin-top:10px">✏️ Okay — go ahead and rephrase.</div>';
+  if(!yes){
+    arState.phase='idle';
+    addMsg('you','Let me rephrase that.','u');
+    addBotMsg('No problem — tell me what you need in different words, or pick one of the templatised use cases.',400);
+    return;
+  }
+  const sc=SCENARIOS.find(s=>s.key===key); if(!sc) return;
+  addMsg('you','Run this plan','u');
+  addBotMsg(`Kicking off <b>${sc.name}</b> now — I'll narrate each step below and drop the details into the panel on the right.`,450).then(()=>startAppRequest(sc));
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const text=inp.value.trim(); if(!text) return;
+  inp.value='';
+  addMsg('you',text,'u');
+  updateConvTitleFromFirstMessage(text);
+  if(isBusy()){
+    await addBotMsg('This chat already has a run in progress — approve or reject the pending step above, or start a <b>New chat</b> from the sidebar to explore another use case in parallel.',450);
+    return;
+  }
+  const sc=detectScenario(text);
+  if(!sc){
+    await addThinkingMsg('No template keyword matched (what-if / TCO / TEI, survey, review / governance / standards, diagram). Asking a clarifying question instead of guessing the use case.',900);
+    await addBotMsg('I can help with a few EA agent use cases today. Which one fits, or tell me more?'+renderSuggestionChipsHtml(),500);
+    return;
+  }
+  await proposeScenario(sc);
+}
+
+function startAppRequest(sc){
+  arState={phase:'running',scenario:sc,steps:buildAppSteps(sc),idx:0,runId:'run-'+Math.random().toString(36).slice(2,8),running:true,queueId:null,convId:activeConvId,stepN:2,stepRejected:false,runMetaText:''};
+  bump('s-runs',1);
+  document.getElementById('arBanner').style.display='flex';
+  document.getElementById('detailCol').style.display='block';
+  document.getElementById('chatLayout').classList.add('run-active');
+  document.getElementById('invCard').style.display='none';
+  document.getElementById('snowCard').style.display='none';
+  setRunMeta(arState.runId+' · '+arState.steps.length+' pre-approval steps');
+  setAppStep(2);
+  renderWorkflowStructure();
+  renderDataFlow();
+  switchDetailTab('workflow');
+  addPipelineCardMsg();
+  advanceAr();
+}
+
+
+/* ==================== DETAIL PANEL: reveal-driven tabs (presentation only) ====================
+   #invCard and #snowCard now live inside the detail panel. Nothing in the run logic changed —
+   we just watch their inline display and unlock / activate the matching tab when they appear. */
+(function(){
+  const PAIRS=[['invCard','inventory'],['snowCard','servicenow']];
+  PAIRS.forEach(([cardId,tab])=>{
+    const card=document.getElementById(cardId), btn=document.getElementById('dtab-'+tab);
+    if(!card||!btn) return;
+    new MutationObserver(()=>{
+      const shown=card.style.display && card.style.display!=='none';
+      btn.classList.toggle('locked',!shown);
+      if(shown){ btn.classList.add('fresh'); switchDetailTab(tab); setTimeout(()=>btn.classList.remove('fresh'),2600); }
+      else if(btn.classList.contains('on')) switchDetailTab('workflow');
+    }).observe(card,{attributes:true,attributeFilter:['style']});
+  });
+})();
+
+/* ==================== INIT ==================== */
+renderInventoryTable();
+drawAudit(); drawQueue();
+newConversation();
+</script>
+</body>
+</html>
