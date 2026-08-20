@@ -78,13 +78,21 @@ header.topbar::after{
 .whoami .av{width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600;}
 
 /* ================= SHELL / NAV ================= */
-.shell{display:grid; grid-template-columns:226px 1fr; min-height:calc(100vh - 56px); transition:grid-template-columns .2s var(--ease);}
+.shell{display:grid; grid-template-columns:226px 1fr; min-height:calc(100vh - 56px); transition:grid-template-columns .2s var(--ease); position:relative;}
 .shell.nav-collapsed{grid-template-columns:60px 1fr;}
 .nav{border-right:1px solid var(--border); background:var(--card); padding:16px 0; position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; overflow-x:hidden; transition:width .2s var(--ease);}
-.nav-toggle-row{display:flex; justify-content:flex-end; padding:0 12px 10px;}
-.nav.collapsed .nav-toggle-row{justify-content:center;}
-.nav-toggle{background:none; border:1px solid var(--border); border-radius:6px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; color:var(--muted); transition:all .15s var(--ease); flex-shrink:0;}
-.nav-toggle:hover{background:var(--border-light); color:var(--navy);}
+/* toggle now floats on the seam between the sidebar and the workspace */
+.nav-seam-toggle{
+  position:fixed; top:70px; left:212px; z-index:60;
+  width:28px; height:28px; padding:0; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--card); border:1px solid var(--border); color:var(--muted);
+  box-shadow:0 2px 6px rgba(15,23,42,.10), 0 0 0 3px var(--bg);
+  transition:left .2s var(--ease), background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.nav-seam-toggle svg{width:16px; height:16px; display:block;}
+.nav-seam-toggle:hover{background:var(--teal-bg); border-color:var(--teal); color:var(--teal-dark); box-shadow:0 3px 10px rgba(13,148,136,.18), 0 0 0 3px var(--bg);}
+.shell.nav-collapsed .nav-seam-toggle{left:46px;}
 .nav h6{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--ink2); padding:16px 16px 6px; font-weight:700; white-space:nowrap;}
 .nav h6:first-child{padding-top:4px;}
 .nav.collapsed h6{display:none;}
@@ -481,6 +489,7 @@ tr.new-row{animation:flash 1.6s var(--ease);}
   .nav h6{display:none;}
   .nav button{border-left:0; border-bottom:2.5px solid transparent; white-space:nowrap; padding:12px 14px;}
   .nav button.on{border-bottom-color:var(--teal); border-left-color:transparent;}
+  .nav-seam-toggle{display:none;}
   main.content{padding:20px 16px 50px;}
   .g2,.g3,.g4{grid-template-columns:1fr;}
   .chat-layout{grid-template-columns:1fr;}
@@ -767,7 +776,7 @@ body:has(#p-apprequest.on) main.content{padding:14px 18px 16px; max-width:none;}
 
     <div class="ar-workspace" id="arWorkspace">
       <aside class="convo-sidebar" id="convoSidebar">
-        <button class="convo-new" onclick="newConversation()">+ &nbsp;New chat</button>
+        <button class="convo-new" onclick="newConversation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New chat</button>
         <div class="convo-list" id="convoList"></div>
       </aside>
 
@@ -1226,9 +1235,13 @@ const PAGES=[
  ['integrations','Integrations','11'],['solutiondesign','Solution Design','']];
 const NAV_ICONS={overview:'OV',apprequest:'AR',agents:'AG',approvals:'AP',audit:'AU',telemetry:'TL',evals:'EV',guardrails:'GR',identity:'ID',integrations:'IN',solutiondesign:'SD'};
 const nav=document.getElementById('nav');
-const toggleRow=document.createElement('div');toggleRow.className='nav-toggle-row';
-toggleRow.innerHTML=`<button class="nav-toggle" id="navToggleBtn" onclick="toggleNav()" title="Collapse sidebar">&#171;</button>`;
-nav.appendChild(toggleRow);
+const NAV_ICON_OPEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><line x1="9.5" y1="4" x2="9.5" y2="20"/><path d="M16.5 9.5 14 12l2.5 2.5"/></svg>';
+const NAV_ICON_CLOSED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><line x1="9.5" y1="4" x2="9.5" y2="20"/><path d="M13.5 9.5 16 12l-2.5 2.5"/></svg>';
+const seamBtn=document.createElement('button');
+seamBtn.className='nav-seam-toggle'; seamBtn.id='navToggleBtn';
+seamBtn.setAttribute('onclick','toggleNav()'); seamBtn.title='Collapse sidebar';
+seamBtn.innerHTML=NAV_ICON_OPEN;
+document.querySelector('.shell').appendChild(seamBtn);
 PAGES.forEach(([id,label,ct])=>{
   if(id.startsWith('SEP')){const h=document.createElement('h6');h.textContent=label;nav.appendChild(h);return;}
   const b=document.createElement('button');b.id='n-'+id;b.onclick=()=>go(id);b.title=label;
@@ -1238,7 +1251,7 @@ PAGES.forEach(([id,label,ct])=>{
 function toggleNav(){
   const collapsed=nav.classList.toggle('collapsed');
   document.querySelector('.shell').classList.toggle('nav-collapsed',collapsed);
-  document.getElementById('navToggleBtn').innerHTML=collapsed?'&#187;':'&#171;';
+  document.getElementById('navToggleBtn').innerHTML=collapsed?NAV_ICON_CLOSED:NAV_ICON_OPEN;
   document.getElementById('navToggleBtn').title=collapsed?'Expand sidebar':'Collapse sidebar';
 }
 function go(id){
